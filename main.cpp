@@ -52,8 +52,9 @@ public:
     }
 
     /// Returns the bit-by-bit ciphertexts of the encrypted Bloom filter
-    std::vector<unsigned long> encrypt() {
-        return std::vector<unsigned long>();
+    std::vector<bool> encrypt() {
+        // TODO: Add public key
+        return std::vector<bool>();
     }
 
     /// Hashes the input with the given seed using MurmurHash3 and returns the first 32 bits as an unsigned long
@@ -93,5 +94,32 @@ int main() {
 //    for (int i = 0; i < hello.m_bits; ++i) {
 //        std::cout << hello.storage.at(i) << std::endl;
 //    }
+
+
+    //// MPSI protocol
+
+
+    /// Local EIBF generation
+    std::vector<unsigned long> client1_set({1, 2, 3});
+    std::vector<unsigned long> client2_set({2, 3, 4});
+
+    // 1. Clients computer their Bloom filter
+    BloomFilter client1_bf(16, 4);
+    BloomFilter client2_bf(16, 4);
+
+    // 2. Invert the Boom filters
+    client1_bf.invert();
+    client2_bf.invert();
+
+    // 3. Compute the encrypted (inverted) Bloom filters
+    std::vector<bool> client1_eibf = client1_bf.encrypt();
+    std::vector<bool> client2_eibf = client2_bf.encrypt();
+
+    // 4. Send the encrypted Bloom filters to the server
+    // TODO: Implement sending
+
+
+    /// Set Intersection Computation
+
     return 0;
 }
