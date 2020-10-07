@@ -145,5 +145,10 @@ int main() {
         }
     }
 
+    // 3. Decrypt-to-zero each ciphertext
+    for (unsigned long ciphertext : ciphertexts) {
+        // TODO: Let parties decrypt-to-zero
+    }
+
     return 0;
 }
