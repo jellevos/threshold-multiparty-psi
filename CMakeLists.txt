@@ -12,9 +12,9 @@ find_package(NTL REQUIRED)
 
 # Libraries
 add_library(MurmurHash3 MurmurHash3.cpp MurmurHash3.h)
-add_library(ThresholdPaillier threshold_paillier.cpp threshold_paillier.hpp threshold_paillier_ad.cpp)
+add_library(ThresholdPaillier threshold_paillier_ad.cpp)
 
 # Bundle everything together
-add_executable(multiparty_psi_fresh test.cpp)
+add_executable(multiparty_psi_fresh main.cpp)
 target_include_directories(multiparty_psi_fresh PUBLIC ${NTL_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
 target_link_libraries(multiparty_psi_fresh ThresholdPaillier ${NTL_LIBRARY} ${GMP_LIBRARIES})
