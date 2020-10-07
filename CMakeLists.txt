@@ -12,7 +12,7 @@ find_package(NTL REQUIRED)
 
 # Libraries
 add_library(MurmurHash3 MurmurHash3.cpp MurmurHash3.h)
-add_library(ThresholdPaillier threshold_paillier.cpp threshold_paillier.hpp)
+add_library(ThresholdPaillier threshold_paillier.cpp threshold_paillier.hpp threshold_paillier_ad.cpp)
 
 # Bundle everything together
 add_executable(multiparty_psi_fresh test.cpp)
