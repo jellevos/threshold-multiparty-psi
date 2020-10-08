@@ -45,9 +45,9 @@ public:
     /// Returns the bit-by-bit ciphertexts of the encrypted Bloom filter
     void encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_key) {
         ciphertexts.reserve(this->storage.size());
-        for (int i = 0; i < this->storage.size(); ++i) {
+        for (bool element : this->storage) {
             // TODO: Maybe cast storage to long
-            ciphertexts.at(i) = encrypt(ZZ(this->storage.at(i)), public_key);
+            ciphertexts.push_back(encrypt(ZZ(element), public_key));
         }
     }
 
@@ -104,7 +104,6 @@ int main() {
     for (unsigned long element : server_set) {
         // Compute for the first hash function
         unsigned long index = BloomFilter::hash(element, 0) % m_bits;
-
         ZZ ciphertext = client1_eibf.at(index);
         ciphertext = add_homomorphically(ciphertext, client2_eibf.at(index), keys.public_key);
 

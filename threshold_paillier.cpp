@@ -52,7 +52,7 @@ static ZZ Gen_Coprime(const NTL::ZZ& n){
 static ZZ L_function(const ZZ& x, const ZZ& n) { return (x - 1) / n; }
 
 
-static void key_gen(Keys* keys, const long key_length) {
+void key_gen(Keys* keys, const long key_length) {
     ZZ p, q, pp, qq;
 
     GenSafePrimePair(p, q, pp, qq, key_length);
@@ -81,7 +81,7 @@ static void key_gen(Keys* keys, const long key_length) {
     keys->private_keys.push_back((beta * m + a1 * 3 + a2 * 3 * 3) % (n * m));
 };
 
-static ZZ encrypt(ZZ message, const PublicKey& public_key) {
+ZZ encrypt(ZZ message, const PublicKey& public_key) {
     /* Paillier encryption function. Takes in a message in F(modulus), and returns a message in F(modulus**2).
      *
      * Parameters
@@ -98,7 +98,7 @@ static ZZ encrypt(ZZ message, const PublicKey& public_key) {
     return ciphertext % (public_key.n * public_key.n);
 }
 
-static ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secret_key) {
+ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secret_key) {
     /* Paillier partial decryption function. Takes in a ciphertext in F(modulus**2), and returns a partial decryption in the same space.
      *
       * Parameters
@@ -114,7 +114,7 @@ static ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secre
     return partial_decryption;
 }
 
-static ZZ combine_partial_decrypt(ZZ& c1, ZZ& c2, ZZ& c3, const PublicKey& public_key) {
+ZZ combine_partial_decrypt(ZZ& c1, ZZ& c2, ZZ& c3, const PublicKey& public_key) {
     /* Combine the partial decryptions to obtain the decryption of the original ciphertext.
      *
      * Parameters
@@ -145,11 +145,11 @@ static ZZ combine_partial_decrypt(ZZ& c1, ZZ& c2, ZZ& c3, const PublicKey& publi
     return m;
 }
 
-static ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key) {
+ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key) {
     return NTL::MulMod(c1, c2, public_key.n * public_key.n);
 }
 
-static ZZ rerandomize(ZZ ciphertext, PublicKey& public_key) {
+ZZ rerandomize(ZZ ciphertext, PublicKey& public_key) {
     // Homomorphically add a random encryption of zero to the ciphertext
     return add_homomorphically(ciphertext, encrypt(ZZ(0), public_key), public_key);
 }
