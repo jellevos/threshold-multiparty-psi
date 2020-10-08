@@ -3,6 +3,7 @@
 #include "MurmurHash3.h"
 #include "threshold_paillier.h"
 
+// TODO: Move BloomFilter class to separate file
 class BloomFilter {
 public:
     explicit BloomFilter(unsigned long m_bits, unsigned long k_hashes) :
@@ -61,6 +62,8 @@ public:
     }
 };
 
+// TODO: Cache n^2
+// TODO: Move protocol to separate file
 int main() {
     //// MPSI protocol
     Keys keys;
@@ -100,7 +103,8 @@ int main() {
     /// Set Intersection Computation
     // 1-2. Use the k hashes to select elements from the EIBFs and sum them up homomorphically,
     //      rerandomize afterwards.
-    std::vector<ZZ> ciphertexts(server_set.size());
+    std::vector<ZZ> ciphertexts;
+    ciphertexts.reserve(server_set.size());
     for (unsigned long element : server_set) {
         // Compute for the first hash function
         unsigned long index = BloomFilter::hash(element, 0) % m_bits;
@@ -114,17 +118,53 @@ int main() {
             // Sum up all selected ciphertexts
             ciphertext = add_homomorphically(ciphertext, client1_eibf.at(index), keys.public_key);
             ciphertext = add_homomorphically(ciphertext, client2_eibf.at(index), keys.public_key);
-
-            // Rerandomize the ciphertext to prevent analysis due to the deterministic nature of homomorphic addition
-            ciphertext = rerandomize(ciphertext, keys.public_key);
-
-            ciphertexts.push_back(ciphertext);
         }
+
+        // Rerandomize the ciphertext to prevent analysis due to the deterministic nature of homomorphic addition
+        ciphertext = rerandomize(ciphertext, keys.public_key);
+
+        ciphertexts.push_back(ciphertext);
     }
 
-    // 3. Decrypt-to-zero each ciphertext
+    // 3. The ciphertexts get sent to l parties
+    // TODO: Send to clients (look into threshold)
+
+    // 4-5. Decrypt-to-zero each ciphertext and run the combining algorithm
+    std::vector<ZZ> decryptions;
+    decryptions.reserve(ciphertexts.size());
     for (ZZ ciphertext : ciphertexts) {
-        // TODO: Let parties decrypt-to-zero
+        ZZ zero_ciphertext(1);
+
+        // Client 1 raises C to a nonzero random power and all the clients' results are multiplied
+        ZZ random = Gen_Coprime(keys.public_key.n);
+        zero_ciphertext = NTL::MulMod(zero_ciphertext,
+                                      NTL::PowerMod(ciphertext, random, keys.public_key.n * keys.public_key.n),
+                                      keys.public_key.n * keys.public_key.n);
+        // Client 2 raises C to a nonzero random power and all the clients' results are multiplied
+        random = Gen_Coprime(keys.public_key.n);
+        zero_ciphertext = NTL::MulMod(zero_ciphertext,
+                                      NTL::PowerMod(ciphertext, random, keys.public_key.n * keys.public_key.n),
+                                      keys.public_key.n * keys.public_key.n);
+
+        // Partial decryption
+        std::vector<ZZ> decryption_shares;
+        decryption_shares.reserve(3);
+        // Client 1
+        decryption_shares.push_back(partial_decrypt(zero_ciphertext, keys.public_key, keys.private_keys.at(0)));
+        // Client 2
+        decryption_shares.push_back(partial_decrypt(zero_ciphertext, keys.public_key, keys.private_keys.at(1)));
+        // Server
+        decryption_shares.push_back(partial_decrypt(zero_ciphertext, keys.public_key, keys.private_keys.at(2)));
+
+        // Combining algorithm
+        decryptions.push_back(combine_partial_decrypt(decryption_shares.at(0),
+                                                      decryption_shares.at(1),
+                                                      decryption_shares.at(2),
+                                                      keys.public_key));
+    }
+
+    for (ZZ d : decryptions) {
+        std::cout << d << std::endl;
     }
 
     return 0;

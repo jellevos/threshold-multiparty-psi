@@ -6,6 +6,7 @@
 
 
 // TODO: Consider changing ZZs to references
+// TODO: NTL:ZZ to ZZ
 
 static void GenSafePrimePair(NTL::ZZ& p, NTL::ZZ& q, NTL::ZZ& pp, NTL::ZZ& qq, long keyLength){
     /* Coprime generation function. Generates a random coprime number of n.
@@ -31,7 +32,7 @@ static void GenSafePrimePair(NTL::ZZ& p, NTL::ZZ& q, NTL::ZZ& pp, NTL::ZZ& qq, l
     }
 }
 
-static ZZ Gen_Coprime(const NTL::ZZ& n){
+ZZ Gen_Coprime(const NTL::ZZ& n) {
     /* Coprime generation function. Generates a random coprime number of n.
     *
     * Parameters
