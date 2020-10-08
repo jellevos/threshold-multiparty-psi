@@ -7,6 +7,7 @@
 
 // TODO: Consider changing ZZs to references
 // TODO: NTL:ZZ to ZZ
+// TODO: Generalize towards an arbitrary number of t and l
 
 static void GenSafePrimePair(NTL::ZZ& p, NTL::ZZ& q, NTL::ZZ& pp, NTL::ZZ& qq, long keyLength){
     /* Coprime generation function. Generates a random coprime number of n.
