@@ -148,3 +148,8 @@ static ZZ combine_partial_decrypt(ZZ& c1, ZZ& c2, ZZ& c3, const PublicKey& publi
 static ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key) {
     return NTL::MulMod(c1, c2, public_key.n * public_key.n);
 }
+
+static ZZ rerandomize(ZZ ciphertext, PublicKey& public_key) {
+    // Homomorphically add a random encryption of zero to the ciphertext
+    return add_homomorphically(ciphertext, encrypt(ZZ(0), public_key), public_key);
+}

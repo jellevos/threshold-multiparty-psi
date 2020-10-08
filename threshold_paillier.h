@@ -27,5 +27,6 @@ static ZZ encrypt(ZZ message, const PublicKey& public_key);
 static ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secret_key);
 static ZZ combine_partial_decrypt(ZZ& c1, ZZ& c2, ZZ& c3, const PublicKey& public_key);
 static ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key);
+static ZZ rerandomize(ZZ ciphertext, PublicKey& public_key);
 
 #endif //THRESHOLD_PAILLIER_H

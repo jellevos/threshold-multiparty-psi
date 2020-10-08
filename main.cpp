@@ -116,7 +116,8 @@ int main() {
             ciphertext = add_homomorphically(ciphertext, client1_eibf.at(index), keys.public_key);
             ciphertext = add_homomorphically(ciphertext, client2_eibf.at(index), keys.public_key);
 
-            // TODO: Rerandomize
+            // Rerandomize the ciphertext to prevent analysis due to the deterministic nature of homomorphic addition
+            ciphertext = rerandomize(ciphertext, keys.public_key);
 
             ciphertexts.push_back(ciphertext);
         }
