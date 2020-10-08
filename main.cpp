@@ -63,10 +63,16 @@ public:
 
 int main() {
     //// MPSI protocol
+    Keys keys;
+    key_gen(&keys, 512);
+    // -> Normally, the keys would be distributed to the parties now
+    // TODO: Implement sending
+
 
     /// Initialization
     unsigned long m_bits = 16;
     unsigned long k_hashes = 4;
+
 
     /// Local EIBF generation
     std::vector<unsigned long> client1_set({1, 2, 3});
@@ -84,8 +90,8 @@ int main() {
     // 3. Compute the encrypted (inverted) Bloom filters
     std::vector<ZZ> client1_eibf;
     std::vector<ZZ> client2_eibf;
-    client1_bf.encrypt_all(client1_eibf, );
-    client2_bf.encrypt_all(client2_eibf, );
+    client1_bf.encrypt_all(client1_eibf, keys.public_key);
+    client2_bf.encrypt_all(client2_eibf, keys.public_key);
 
     // 4. Send the encrypted Bloom filters to the server
     // TODO: Implement sending
@@ -94,18 +100,21 @@ int main() {
     /// Set Intersection Computation
     // 1-2. Use the k hashes to select elements from the EIBFs and sum them up homomorphically,
     //      rerandomize afterwards.
-    //std::vector<unsigned long> client1_c(k_hashes);
-    //unsigned long client1_c = 0;
-    std::vector<unsigned long> ciphertexts(server_set.size());
+    std::vector<ZZ> ciphertexts(server_set.size());
     for (unsigned long element : server_set) {
-        unsigned long ciphertext = 0;
+        // Compute for the first hash function
+        unsigned long index = BloomFilter::hash(element, 0) % m_bits;
 
-        for (int i = 0; i < k_hashes; ++i) {
-            unsigned long index = BloomFilter::hash(element, i) % m_bits;
+        ZZ ciphertext = client1_eibf.at(index);
+        ciphertext = add_homomorphically(ciphertext, client2_eibf.at(index), keys.public_key);
 
-            // HOMOMORPHIC ADDITION
-            ciphertext += client1_eibf.at(index);
-            ciphertext += client2_eibf.at(index);
+        // Compute for the remaining hash functions
+        for (int i = 1; i < k_hashes; ++i) {
+            index = BloomFilter::hash(element, i) % m_bits;
+
+            // Sum up all selected ciphertexts
+            ciphertext = add_homomorphically(ciphertext, client1_eibf.at(index), keys.public_key);
+            ciphertext = add_homomorphically(ciphertext, client2_eibf.at(index), keys.public_key);
 
             // TODO: Rerandomize
 
@@ -114,7 +123,7 @@ int main() {
     }
 
     // 3. Decrypt-to-zero each ciphertext
-    for (unsigned long ciphertext : ciphertexts) {
+    for (ZZ ciphertext : ciphertexts) {
         // TODO: Let parties decrypt-to-zero
     }
 

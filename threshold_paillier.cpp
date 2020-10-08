@@ -1,8 +1,11 @@
 //
 // Created by jelle on 07-10-20.
+// TODO: Change
 //
 #include "threshold_paillier.h"
 
+
+// TODO: Consider changing ZZs to references
 
 static void GenSafePrimePair(NTL::ZZ& p, NTL::ZZ& q, NTL::ZZ& pp, NTL::ZZ& qq, long keyLength){
     /* Coprime generation function. Generates a random coprime number of n.
@@ -140,4 +143,8 @@ static ZZ combine_partial_decrypt(ZZ& c1, ZZ& c2, ZZ& c3, const PublicKey& publi
     ZZ m = NTL::MulMod(L_function(product, public_key.n), Inv_temp, public_key.n);
 
     return m;
+}
+
+static ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key) {
+    return NTL::MulMod(c1, c2, public_key.n * public_key.n);
 }
