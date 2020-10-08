@@ -17,7 +17,6 @@ public:
 
     /// Inserts the given element into the Bloom filter
     void insert(unsigned long element) {
-        std::cout << "insert" << std::endl;
         for (unsigned long i = 0; i < this->k_hashes; ++i) {
             unsigned long index = BloomFilter::hash(element, i) % this->m_bits;
             this->storage.at(index) = true;
@@ -44,6 +43,7 @@ public:
     }
 
     /// Returns the bit-by-bit ciphertexts of the encrypted Bloom filter
+    // TODO: Consider not passing ciphertexts by reference
     void encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_key) {
         ciphertexts.reserve(this->storage.size());
         for (bool element : this->storage) {
@@ -85,6 +85,12 @@ int main() {
     // 1. Clients computer their Bloom filter
     BloomFilter client1_bf(m_bits, k_hashes);
     BloomFilter client2_bf(m_bits, k_hashes);
+    for (unsigned long element : client1_set) {
+        client1_bf.insert(element);
+    }
+    for (unsigned long element : client2_set) {
+        client2_bf.insert(element);
+    }
 
     // 2. Invert the Boom filters
     client1_bf.invert();
@@ -146,6 +152,8 @@ int main() {
                                       NTL::PowerMod(ciphertext, random, keys.public_key.n * keys.public_key.n),
                                       keys.public_key.n * keys.public_key.n);
 
+        // TODO: Maybe server as well to make sure it's resistant when clients do not randomize
+
         // Partial decryption
         std::vector<ZZ> decryption_shares;
         decryption_shares.reserve(3);
@@ -163,8 +171,12 @@ int main() {
                                                       keys.public_key));
     }
 
-    for (ZZ d : decryptions) {
-        std::cout << d << std::endl;
+    // 6. Output the final intersection by selecting the elements from the server set that correspond to a decryption of zero
+    std::vector<unsigned long> intersection;
+    for (int i = 0; i < server_set.size(); ++i) {
+        if (decryptions.at(i) == 0) {
+            intersection.push_back(server_set.at(i));
+        }
     }
 
     return 0;
