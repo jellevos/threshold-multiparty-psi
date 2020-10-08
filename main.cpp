@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "MurmurHash3.h"
+#include "threshold_paillier.h"
 
 class BloomFilter {
 public:
@@ -42,9 +43,12 @@ public:
     }
 
     /// Returns the bit-by-bit ciphertexts of the encrypted Bloom filter
-    std::vector<unsigned long> encrypt() {
-        // TODO: Add public key and replace unsigned long with ciphertext
-        return std::vector<unsigned long>();
+    void encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_key) {
+        ciphertexts.reserve(this->storage.size());
+        for (int i = 0; i < this->storage.size(); ++i) {
+            // TODO: Maybe cast storage to long
+            ciphertexts.at(i) = encrypt(ZZ(this->storage.at(i)), public_key);
+        }
     }
 
     /// Hashes the input with the given seed using MurmurHash3 and returns the first 32 bits as an unsigned long
@@ -78,8 +82,10 @@ int main() {
     client2_bf.invert();
 
     // 3. Compute the encrypted (inverted) Bloom filters
-    std::vector<unsigned long> client1_eibf = client1_bf.encrypt();
-    std::vector<unsigned long> client2_eibf = client2_bf.encrypt();
+    std::vector<ZZ> client1_eibf;
+    std::vector<ZZ> client2_eibf;
+    client1_bf.encrypt_all(client1_eibf, );
+    client2_bf.encrypt_all(client2_eibf, );
 
     // 4. Send the encrypted Bloom filters to the server
     // TODO: Implement sending

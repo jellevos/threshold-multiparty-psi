@@ -3,7 +3,7 @@
 //
 #include <iostream>
 #include "threshold_paillier.hpp"
-#include "threshold_paillier_ad.cpp"
+#include "threshold_paillier.cpp"
 
 using namespace NTL;
 
