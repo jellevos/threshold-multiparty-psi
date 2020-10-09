@@ -23,7 +23,7 @@ struct Keys {
     std::vector<ZZ> private_keys;
 };
 
-void key_gen(Keys* keys, long key_length, unsigned long threshold_l = 2, unsigned long parties_t = 3);
+void key_gen(Keys* keys, long key_length, unsigned long threshold_l, unsigned long parties_t);
 ZZ encrypt(ZZ message, const PublicKey& public_key);
 ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secret_key);
 ZZ combine_partial_decrypt(std::vector<std::pair<unsigned long, ZZ>> secret_shares, const PublicKey& public_key);
