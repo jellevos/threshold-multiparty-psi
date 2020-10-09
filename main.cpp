@@ -1,66 +1,8 @@
 #include <iostream>
 #include <vector>
-#include "MurmurHash3.h"
 #include "threshold_paillier.h"
+#include "bloom_filter.h"
 
-// TODO: Move BloomFilter class to separate file
-class BloomFilter {
-public:
-    explicit BloomFilter(unsigned long m_bits, unsigned long k_hashes) :
-    storage(m_bits),
-    m_bits(m_bits),
-    k_hashes(k_hashes) {}
-
-    std::vector<bool> storage;  // TODO: Make private
-    unsigned long m_bits;
-    unsigned long k_hashes;
-
-    /// Inserts the given element into the Bloom filter
-    void insert(unsigned long element) {
-        for (unsigned long i = 0; i < this->k_hashes; ++i) {
-            unsigned long index = BloomFilter::hash(element, i) % this->m_bits;
-            this->storage.at(index) = true;
-        }
-    }
-
-    /// Checks whether an element appears to have been inserted into the Bloom filter
-    bool contains(unsigned long element) {
-        for (unsigned long i = 0; i < this->k_hashes; ++i) {
-            unsigned long index = BloomFilter::hash(element, i) % this->m_bits;
-            if (not this->storage.at(index)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// Inverts the Bloom filter in place so that all 0s become 1s and all 1s become 0s
-    void invert() {
-        for (unsigned long j = 0; j < this->m_bits; ++j) {
-            this->storage.at(j) = !this->storage.at(j);
-        }
-    }
-
-    /// Returns the bit-by-bit ciphertexts of the encrypted Bloom filter
-    // TODO: Consider not passing ciphertexts by reference
-    void encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_key) {
-        ciphertexts.reserve(this->storage.size());
-        for (bool element : this->storage) {
-            // TODO: Maybe cast storage to long
-            ciphertexts.push_back(encrypt(ZZ(element), public_key));
-        }
-    }
-
-    /// Hashes the input with the given seed using MurmurHash3 and returns the first 32 bits as an unsigned long
-    static unsigned long hash(unsigned long input, unsigned long seed) {
-        unsigned long output[4];
-
-        MurmurHash3_x64_128(&input, (uint32_t) 8, seed, &output);
-
-        return output[0];
-    }
-};
 
 // TODO: Cache n^2
 // TODO: Move protocol to separate file
