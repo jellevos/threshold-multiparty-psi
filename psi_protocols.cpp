@@ -6,6 +6,8 @@
 #include "threshold_paillier.h"
 #include "bloom_filter.h"
 
+// TODO: Clean up
+// TODO: Fix all file headers
 std::vector<unsigned long> multiparty_psi(std::vector<std::vector<unsigned long>> client_sets,
                                           std::vector<unsigned long> server_set,
                                           unsigned long threshold_l, unsigned long parties_t,

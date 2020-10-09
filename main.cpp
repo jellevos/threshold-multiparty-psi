@@ -4,6 +4,7 @@
 
 
 // TODO: Cache n^2
+// TODO: Allow variable set sizes?
 int main() {
     std::cout << "Computing the set intersection between multiple parties using a (2, 3)-encryption of 1024 bits."
     << std::endl;
