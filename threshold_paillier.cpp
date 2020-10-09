@@ -8,6 +8,7 @@
 // TODO: Consider changing ZZs to references
 // TODO: NTL:ZZ to ZZ
 // TODO: Generalize towards an arbitrary number of t and l
+// TODO: Fix comments (shorten?)
 
 static void GenSafePrimePair(NTL::ZZ& p, NTL::ZZ& q, NTL::ZZ& pp, NTL::ZZ& qq, long keyLength){
     /* Coprime generation function. Generates a random coprime number of n.
@@ -54,7 +55,7 @@ ZZ Gen_Coprime(const NTL::ZZ& n) {
 static ZZ L_function(const ZZ& x, const ZZ& n) { return (x - 1) / n; }
 
 
-void key_gen(Keys* keys, const long key_length) {
+void key_gen(Keys* keys, const long key_length, unsigned long threshold_l, unsigned long parties_t) {
     ZZ p, q, pp, qq;
 
     GenSafePrimePair(p, q, pp, qq, key_length);
@@ -65,23 +66,36 @@ void key_gen(Keys* keys, const long key_length) {
     ZZ g = n + 1;
     ZZ beta = Gen_Coprime(n);
     ZZ theta = NTL::MulMod(m, beta, n);
-    ZZ delta(6);
+    ZZ delta(tgamma(parties_t + 1));
 
     keys->public_key = PublicKey {
         g,
         n,
         theta,
-        delta
+        delta,
+        threshold_l
     };
 
     // Secret key generation
-    ZZ a1 = NTL::RandomBnd(n * m);
-    ZZ a2 = NTL::RandomBnd(n * m);
-    keys->private_keys.reserve(3);
-    keys->private_keys.push_back((beta * m + a1 * 1 + a2 * 1 * 1) % (n * m));
-    keys->private_keys.push_back((beta * m + a1 * 2 + a2 * 2 * 2) % (n * m));
-    keys->private_keys.push_back((beta * m + a1 * 3 + a2 * 3 * 3) % (n * m));
-};
+    std::vector<ZZ> coefficients;
+    coefficients.reserve(threshold_l);
+    for (int i = 0; i < threshold_l; ++i) {
+        // Generate the polynomial coefficients
+        coefficients.push_back(NTL::RandomBnd(n * m));
+    }
+
+    keys->private_keys.reserve(parties_t);
+    for (int i = 1; i <= parties_t; ++i) {
+        // Calculate the keys from the polynomials
+        ZZ key = beta * m;
+
+        for (int j = 0; j < threshold_l; ++j) {
+            key += coefficients.at(j) * NTL::power(ZZ(i), j + 1);
+        }
+
+        keys->private_keys.push_back(key % (n * m));
+    }
+}
 
 ZZ encrypt(ZZ message, const PublicKey& public_key) {
     /* Paillier encryption function. Takes in a message in F(modulus), and returns a message in F(modulus**2).
@@ -116,7 +130,7 @@ ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secret_key) 
     return partial_decryption;
 }
 
-ZZ combine_partial_decrypt(ZZ& c1, ZZ& c2, ZZ& c3, const PublicKey& public_key) {
+ZZ combine_partial_decrypt(std::vector<std::pair<unsigned long, ZZ>> secret_shares, const PublicKey& public_key) {
     /* Combine the partial decryptions to obtain the decryption of the original ciphertext.
      *
      * Parameters
@@ -127,24 +141,52 @@ ZZ combine_partial_decrypt(ZZ& c1, ZZ& c2, ZZ& c3, const PublicKey& public_key) 
      * =======
      * NTL::ZZ M: the decryption of the original message.
      */
-    ZZ lambda1(3);
-    ZZ lambda2(-3);
-    ZZ lambda3(1);
+    std::vector<ZZ> lambdas;
+    // TODO: Correct mistake here in the paper: it says threshold l out of total l, but we should have l+1 out of t
+    for (int i = 0; i < (public_key.threshold_l + 1); ++i) {
+        ZZ lambda = public_key.delta;
 
-    ZZ u1 = public_key.delta * lambda1;
-    ZZ u2 = public_key.delta * lambda2;
-    ZZ u3 = public_key.delta * lambda3;
+        for (int i_prime = 0; i_prime < (public_key.threshold_l + 1); ++i_prime) {
+            if (i != i_prime) {
+                if (secret_shares.at(i).first - secret_shares.at(i_prime).first != 0) {
+                    lambda *= secret_shares.at(i_prime).first;
+                    lambda /= secret_shares.at(i_prime).first - secret_shares.at(i).first;
+                }
+            }
+        }
 
-    ZZ product_1 = NTL::PowerMod(c1, 2 * u1, public_key.n * public_key.n);
-    ZZ product_2 = NTL::PowerMod(c2, 2 * u2, public_key.n * public_key.n);
-    ZZ product_3 = NTL::PowerMod(c3, 2 * u3, public_key.n * public_key.n);
+//        if (lambda < 1) {
+//            lambda *= -1;
+//        }
+        lambdas.push_back(lambda);
 
-    ZZ product = NTL::MulMod(NTL::MulMod(product_1, product_2, public_key.n * public_key.n),
-                             product_3, public_key.n * public_key.n);
+//        c_prime = (c_prime * decrypted_shares[i].GetPowModN(2 * lambda, this->nSquared)) % this->nSquared;
+    }
+//    ZZ lambda1(3);
+//    ZZ lambda2(-3);
+//    ZZ lambda3(1);
+
+    ZZ product(1);
+    for (int i = 0; i < (public_key.threshold_l + 1); ++i) {
+        product = MulMod(product,
+                         PowerMod(secret_shares.at(i).second, 2 * lambdas.at(i), public_key.n * public_key.n),
+                         public_key.n * public_key.n);
+    }
+//    ZZ u1 = public_key.delta * lambda1;
+//    ZZ u2 = public_key.delta * lambda2;
+//    ZZ u3 = public_key.delta * lambda3;
+//
+//    ZZ product_1 = NTL::PowerMod(c1, 2 * u1, public_key.n * public_key.n);
+//    ZZ product_2 = NTL::PowerMod(c2, 2 * u2, public_key.n * public_key.n);
+//    ZZ product_3 = NTL::PowerMod(c3, 2 * u3, public_key.n * public_key.n);
+//
+//    ZZ product = NTL::MulMod(NTL::MulMod(product_1, product_2, public_key.n * public_key.n),
+//                             product_3, public_key.n * public_key.n);
     ZZ Inv_temp = NTL::InvMod(4 * public_key.delta * public_key.delta * public_key.theta % public_key.n, public_key.n);
     ZZ m = NTL::MulMod(L_function(product, public_key.n), Inv_temp, public_key.n);
 
     return m;
+//    return ZZ(0);
 }
 
 ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key) {
