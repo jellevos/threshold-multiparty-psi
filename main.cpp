@@ -177,49 +177,5 @@ int main() {
         }
     }
 
-    Keys _keys;
-    key_gen(&_keys, 1024);
-
-    ZZ message(34614984);
-
-    ZZ c = encrypt(message, _keys.public_key);
-
-    ZZ c1 = partial_decrypt(c, _keys.public_key, _keys.private_keys.at(0));
-    ZZ c2 = partial_decrypt(c, _keys.public_key, _keys.private_keys.at(1));
-    ZZ c3 = partial_decrypt(c, _keys.public_key, _keys.private_keys.at(2));
-
-    ZZ dec_c = combine_partial_decrypt(std::vector<std::pair<unsigned long, ZZ>>({
-        std::make_pair(1, c1),
-        std::make_pair(2, c2),
-        std::make_pair(3, c3),
-        }), _keys.public_key);
-
-    if (dec_c == message) {
-        std::cout << "Encryption and distributed decryption is successful" << std::endl;
-    }
-
-    Keys __keys;
-    key_gen(&__keys, 1024, 3, 5);
-
-    ZZ message2(346149484);
-
-    ZZ _c = encrypt(message2, __keys.public_key);
-
-    ZZ _c1 = partial_decrypt(_c, __keys.public_key, __keys.private_keys.at(0));
-    ZZ _c2 = partial_decrypt(_c, __keys.public_key, __keys.private_keys.at(1));
-    ZZ _c3 = partial_decrypt(_c, __keys.public_key, __keys.private_keys.at(2));
-    ZZ _c5 = partial_decrypt(_c, __keys.public_key, __keys.private_keys.at(4));
-
-    ZZ _dec_c = combine_partial_decrypt(std::vector<std::pair<unsigned long, ZZ>>({
-        std::make_pair(1, _c1),
-        std::make_pair(2, _c2),
-        std::make_pair(3, _c3),
-        std::make_pair(5, _c5),
-        }), __keys.public_key);
-
-    if (_dec_c == message2) {
-        std::cout << "Encryption and distributed decryption is successful" << std::endl;
-    }
-
     return 0;
 }
