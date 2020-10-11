@@ -22,6 +22,7 @@ add_executable(multiparty_psi_fresh main.cpp)
 target_include_directories(multiparty_psi_fresh PUBLIC ${NTL_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
 target_link_libraries(multiparty_psi_fresh
         PSIProtocols
+        SubProtocols
         BloomFilter
         MurmurHash3
         ThresholdPaillier
