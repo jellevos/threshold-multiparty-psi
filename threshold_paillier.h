@@ -28,6 +28,8 @@ ZZ encrypt(ZZ message, const PublicKey& public_key);
 ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secret_key);
 ZZ combine_partial_decrypt(std::vector<std::pair<unsigned long, ZZ>> secret_shares, const PublicKey& public_key);
 ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key);
+ZZ subtract_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key);
+ZZ multiply_homomorphically(ZZ ciphertext, ZZ scalar, PublicKey& public_key);
 ZZ rerandomize(ZZ ciphertext, PublicKey& public_key);
 ZZ Gen_Coprime(const NTL::ZZ& n);
 

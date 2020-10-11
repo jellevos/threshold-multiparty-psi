@@ -193,6 +193,13 @@ ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key) {
     return NTL::MulMod(c1, c2, public_key.n * public_key.n);
 }
 
+ZZ subtract_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key) {
+    return add_homomorphically(c1, NTL::InvMod(c2, public_key.n * public_key.n), public_key);
+}
+ZZ multiply_homomorphically(ZZ ciphertext, ZZ scalar, PublicKey& public_key) {
+    return NTL::PowerMod(ciphertext, scalar, public_key.n * public_key.n);
+}
+
 ZZ rerandomize(ZZ ciphertext, PublicKey& public_key) {
     // Homomorphically add a random encryption of zero to the ciphertext
     return add_homomorphically(ciphertext, encrypt(ZZ(0), public_key), public_key);

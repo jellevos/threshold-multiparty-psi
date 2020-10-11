@@ -15,6 +15,7 @@ add_library(MurmurHash3 MurmurHash3.h MurmurHash3.cpp)
 add_library(ThresholdPaillier threshold_paillier.h threshold_paillier.cpp)
 add_library(BloomFilter bloom_filter.h bloom_filter.cpp)
 add_library(PSIProtocols psi_protocols.h psi_protocols.cpp)
+add_library(SubProtocols sub_protocols.h sub_protocols.cpp)
 
 # Bundle everything together
 add_executable(multiparty_psi_fresh main.cpp)
