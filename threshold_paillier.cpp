@@ -55,7 +55,7 @@ ZZ Gen_Coprime(const NTL::ZZ& n) {
 static ZZ L_function(const ZZ& x, const ZZ& n) { return (x - 1) / n; }
 
 
-void key_gen(Keys* keys, const long key_length, unsigned long threshold_l, unsigned long parties_t) {
+void key_gen(Keys* keys, const long key_length, long threshold_l, long parties_t) {
     ZZ p, q, pp, qq;
 
     GenSafePrimePair(p, q, pp, qq, key_length);
@@ -108,6 +108,7 @@ ZZ encrypt(ZZ message, const PublicKey& public_key) {
      * =======
      * NTL:ZZ ciphertext : the encyrpted message.
      */
+    // Encode numbers so that positive numbers map to [0, n/2] and negative numbers to [n/2, n]
     ZZ encoded_message;
     if (message > 0) {
         encoded_message = message;
@@ -136,7 +137,7 @@ ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secret_key) 
     return partial_decryption;
 }
 
-ZZ combine_partial_decrypt(std::vector<std::pair<unsigned long, ZZ>> secret_shares, const PublicKey& public_key) {
+ZZ combine_partial_decrypt(std::vector<std::pair<long, ZZ>> secret_shares, const PublicKey& public_key) {
     /* Combine the partial decryptions to obtain the decryption of the original ciphertext.
      *
      * Parameters

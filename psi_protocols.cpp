@@ -8,10 +8,10 @@
 
 // TODO: Clean up
 // TODO: Fix all file headers
-std::vector<unsigned long> multiparty_psi(std::vector<std::vector<unsigned long>> client_sets,
-                                          std::vector<unsigned long> server_set,
-                                          unsigned long threshold_l, unsigned long parties_t,
-                                          unsigned long key_length, unsigned long m_bits, unsigned long k_hashes) {
+std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
+                                 std::vector<long> server_set,
+                                 long threshold_l, long parties_t,
+                                 long key_length, long m_bits, long k_hashes) {
     //// MPSI protocol
     Keys keys;
     key_gen(&keys, key_length, threshold_l, parties_t);
@@ -28,11 +28,11 @@ std::vector<unsigned long> multiparty_psi(std::vector<std::vector<unsigned long>
     // 1-3. Clients compute their Bloom filter, invert it and encrypt it (generating EIBFs)
     std::vector<std::vector<ZZ>> client_eibfs;
     client_eibfs.reserve(client_sets.size());
-    for (std::vector<unsigned long> client_set : client_sets) {
+    for (std::vector<long> client_set : client_sets) {
         BloomFilter bloom_filter(m_bits, k_hashes);
 
         // Step 1
-        for (unsigned long element : client_set) {
+        for (long element : client_set) {
             bloom_filter.insert(element);
         }
 
@@ -55,9 +55,9 @@ std::vector<unsigned long> multiparty_psi(std::vector<std::vector<unsigned long>
     //      rerandomize afterwards.
     std::vector<ZZ> ciphertexts;
     ciphertexts.reserve(server_set.size());
-    for (unsigned long element : server_set) {
+    for (long element : server_set) {
         // Compute for the first hash function
-        unsigned long index = BloomFilter::hash(element, 0) % m_bits;
+        long index = BloomFilter::hash(element, 0) % m_bits;
         ZZ ciphertext = client_eibfs.at(0).at(index);
         for (int i = 1; i < client_eibfs.size(); ++i) {
             // From client i add the bit at index from their EIBF
@@ -103,7 +103,7 @@ std::vector<unsigned long> multiparty_psi(std::vector<std::vector<unsigned long>
         // TODO: Maybe server as well to make sure it's resistant when clients do not randomize
 
         // Partial decryption (let threshold + 1 parties decrypt)
-        std::vector<std::pair<unsigned long, ZZ>> decryption_shares;
+        std::vector<std::pair<long, ZZ>> decryption_shares;
         decryption_shares.reserve(3);
         for (int i = 0; i < (threshold_l + 1); ++i) {
             decryption_shares.emplace_back(i + 1, partial_decrypt(zero_ciphertext, keys.public_key,
@@ -116,7 +116,7 @@ std::vector<unsigned long> multiparty_psi(std::vector<std::vector<unsigned long>
     }
 
     // 6. Output the final intersection by selecting the elements from the server set that correspond to a decryption of zero
-    std::vector<unsigned long> intersection;
+    std::vector<long> intersection;
     for (int i = 0; i < server_set.size(); ++i) {
         if (decryptions.at(i) == 0) {
             intersection.push_back(server_set.at(i));
@@ -126,10 +126,10 @@ std::vector<unsigned long> multiparty_psi(std::vector<std::vector<unsigned long>
     return intersection;
 }
 
-std::vector<unsigned long> threshold_multiparty_psi(std::vector<std::vector<unsigned long>> client_sets,
-                                          std::vector<unsigned long> server_set,
-                                          unsigned long threshold_l, unsigned long parties_t,
-                                          unsigned long key_length, unsigned long m_bits, unsigned long k_hashes) {
+std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client_sets,
+                                          std::vector<long> server_set,
+                                          long threshold_l, long parties_t,
+                                          long key_length, long m_bits, long k_hashes) {
     //// MPSI protocol
     Keys keys;
     key_gen(&keys, key_length, threshold_l, parties_t);
@@ -146,11 +146,11 @@ std::vector<unsigned long> threshold_multiparty_psi(std::vector<std::vector<unsi
     // 1-3. Clients compute their Bloom filter, invert it and encrypt it (generating EIBFs)
     std::vector<std::vector<ZZ>> client_ebfs;
     client_ebfs.reserve(client_sets.size());
-    for (std::vector<unsigned long> client_set : client_sets) {
+    for (std::vector<long> client_set : client_sets) {
         BloomFilter bloom_filter(m_bits, k_hashes);
 
         // Step 1
-        for (unsigned long element : client_set) {
+        for (long element : client_set) {
             bloom_filter.insert(element);
         }
 
@@ -170,9 +170,9 @@ std::vector<unsigned long> threshold_multiparty_psi(std::vector<std::vector<unsi
     //      rerandomize afterwards.
     std::vector<ZZ> ciphertexts;
     ciphertexts.reserve(server_set.size());
-    for (unsigned long element : server_set) {
+    for (long element : server_set) {
         // Compute for the first hash function
-        unsigned long index = BloomFilter::hash(element, 0) % m_bits;
+        long index = BloomFilter::hash(element, 0) % m_bits;
         ZZ ciphertext = client_ebfs.at(0).at(index);
         for (int i = 1; i < client_ebfs.size(); ++i) {
             // From client i add the bit at index from their EIBF
@@ -218,7 +218,7 @@ std::vector<unsigned long> threshold_multiparty_psi(std::vector<std::vector<unsi
         // TODO: Maybe server as well to make sure it's resistant when clients do not randomize
 
         // Partial decryption (let threshold + 1 parties decrypt)
-        std::vector<std::pair<unsigned long, ZZ>> decryption_shares;
+        std::vector<std::pair<long, ZZ>> decryption_shares;
         decryption_shares.reserve(3);
         for (int i = 0; i < (threshold_l + 1); ++i) {
             decryption_shares.emplace_back(i + 1, partial_decrypt(zero_ciphertext, keys.public_key,
@@ -231,7 +231,7 @@ std::vector<unsigned long> threshold_multiparty_psi(std::vector<std::vector<unsi
     }
 
     // 6. Output the final intersection by selecting the elements from the server set that correspond to a decryption of zero
-    std::vector<unsigned long> intersection;
+    std::vector<long> intersection;
     for (int i = 0; i < server_set.size(); ++i) {
         if (decryptions.at(i) == 0) {
             intersection.push_back(server_set.at(i));

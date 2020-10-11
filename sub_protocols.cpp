@@ -12,7 +12,7 @@ ZZ random_number_below(const ZZ &n, const ZZ &below_x) {
     }
 }
 
-ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, ZZ random_bound, Keys &keys) {
+ZZ multiparty_comparison(ZZ a, ZZ b, long threshold_l, ZZ random_bound, Keys &keys) {
     /// Designed in "Performance Comparison of Secure Comparison Protocols" by Kerschbaum, Biswas and De Hoogh
 
     // 1. Party X_1 computes the encryption of c = r(x_0 - x_1) - r', where r and r' are random
@@ -50,7 +50,7 @@ ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, ZZ random_bound,
         // TODO: Send to next
     }
 
-    std::vector<std::pair<unsigned long, ZZ>> decryption_shares;
+    std::vector<std::pair<long, ZZ>> decryption_shares;
     decryption_shares.reserve(3);
     for (int i = 0; i < (threshold_l + 1); ++i) {
         decryption_shares.emplace_back(i + 1, partial_decrypt(c_encrypted, keys.public_key,
@@ -58,7 +58,7 @@ ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, ZZ random_bound,
     }
 
     if (combine_partial_decrypt(decryption_shares, keys.public_key) <= 0) {
-        std::vector<std::pair<unsigned long, ZZ>> decryption_sharesq;
+        std::vector<std::pair<long, ZZ>> decryption_sharesq;
         decryption_sharesq.reserve(3);
         for (int q = 0; q < (threshold_l + 1); ++q) {
             decryption_sharesq.emplace_back(q + 1, partial_decrypt(a_1, keys.public_key,
@@ -67,7 +67,7 @@ ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, ZZ random_bound,
         std::cout << combine_partial_decrypt(decryption_sharesq, keys.public_key) << std::endl;
         return a_1;
     } else {
-        std::vector<std::pair<unsigned long, ZZ>> decryption_sharesq;
+        std::vector<std::pair<long, ZZ>> decryption_sharesq;
         decryption_sharesq.reserve(3);
         for (int q = 0; q < (threshold_l + 1); ++q) {
             decryption_sharesq.emplace_back(q + 1, partial_decrypt(a_2, keys.public_key,

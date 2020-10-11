@@ -15,7 +15,7 @@ struct PublicKey {
     ZZ n;
     ZZ theta;
     ZZ delta;
-    unsigned long threshold_l;
+    long threshold_l;
 };
 
 struct Keys {
@@ -23,10 +23,10 @@ struct Keys {
     std::vector<ZZ> private_keys;
 };
 
-void key_gen(Keys* keys, long key_length, unsigned long threshold_l, unsigned long parties_t);
+void key_gen(Keys* keys, long key_length, long threshold_l, long parties_t);
 ZZ encrypt(ZZ message, const PublicKey& public_key);
 ZZ partial_decrypt(ZZ& ciphertext, const PublicKey& public_key, ZZ& secret_key);
-ZZ combine_partial_decrypt(std::vector<std::pair<unsigned long, ZZ>> secret_shares, const PublicKey& public_key);
+ZZ combine_partial_decrypt(std::vector<std::pair<long, ZZ>> secret_shares, const PublicKey& public_key);
 ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key);
 ZZ subtract_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key);
 ZZ multiply_homomorphically(ZZ ciphertext, ZZ scalar, PublicKey& public_key);

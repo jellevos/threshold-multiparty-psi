@@ -7,9 +7,8 @@
 
 #include <vector>
 
-std::vector<unsigned long> multiparty_psi(std::vector<std::vector<unsigned long>> client_sets,
-                                          std::vector<unsigned long> server_set,
-                                          unsigned long threshold_l, unsigned long parties_t,
-                                          unsigned long key_length, unsigned long m_bits, unsigned long k_hashes);
+std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets, std::vector<long> server_set,
+                                 long threshold_l, long parties_t,
+                                 long key_length, long m_bits, long k_hashes);
 
 #endif //PSI_PROTOCOLS_H
