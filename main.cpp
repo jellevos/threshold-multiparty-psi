@@ -8,11 +8,12 @@
 // TODO: Allow variable set sizes?
 int main() {
     Keys keys;
-    key_gen(&keys, 512, 3, 4);
+    key_gen(&keys, 1024, 3, 4);
     // TODO: Important! Rewrite to long instead of unsigned long, use upper half of modulus as negative range
-    std::cout << multiparty_comparison(encrypt(ZZ(3), keys.public_key),
-                                       encrypt(ZZ(5), keys.public_key),
-                                       3, keys) << std::endl;
+    // It needs to hold that key_length > 2^random_bound + 2^input_length + 4
+    std::cout << multiparty_comparison(encrypt(ZZ(7), keys.public_key),
+                                       encrypt(ZZ(6), keys.public_key),
+                                       3, ZZ(256), keys) << std::endl;
 
     std::cout << "Computing the set intersection between multiple parties using a (2, 3)-encryption of 1024 bits."
     << std::endl;

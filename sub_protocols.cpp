@@ -12,12 +12,12 @@ ZZ random_number_below(const ZZ &n, const ZZ &below_x) {
     }
 }
 
-ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, Keys &keys) {
+ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, ZZ random_bound, Keys &keys) {
     /// Designed in "Performance Comparison of Secure Comparison Protocols" by Kerschbaum, Biswas and De Hoogh
 
     // 1. Party X_1 computes the encryption of c = r(x_0 - x_1) - r', where r and r' are random
-    ZZ r = Gen_Coprime(keys.public_key.n);
-    ZZ r_prime = random_number_below(keys.public_key.n, r);
+    ZZ r = RandomBnd(random_bound);
+    ZZ r_prime = RandomBnd(r);
 
     ZZ difference = subtract_homomorphically(a, b, keys.public_key);
     ZZ c_encrypted = subtract_homomorphically(multiply_homomorphically(difference, r, keys.public_key),
@@ -40,8 +40,8 @@ ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, Keys &keys) {
         a_1 = rerandomize(a_1, keys.public_key);
         a_2 = rerandomize(a_2, keys.public_key);
 
-        r = Gen_Coprime(keys.public_key.n);
-        r_prime = random_number_below(keys.public_key.n, r);
+        r = RandomBnd(random_bound);
+        r_prime = RandomBnd(r);
 
         c_encrypted = multiply_homomorphically(c_encrypted, ZZ((b_i * 2 - 1) * r), keys.public_key);
         c_encrypted = add_homomorphically(c_encrypted,

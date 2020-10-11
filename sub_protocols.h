@@ -12,7 +12,7 @@ using namespace NTL;
 
 
 // TODO: Check whether Gen_Coprime is really necessary
-ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, Keys &keys);
+ZZ multiparty_comparison(ZZ a, ZZ b, unsigned long threshold_l, ZZ random_bound, Keys &keys);
 /// Inputs ciphertexts a and b and returns a ciphertext representing the boolean a <= b
 
 

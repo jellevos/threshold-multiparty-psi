@@ -108,8 +108,14 @@ ZZ encrypt(ZZ message, const PublicKey& public_key) {
      * =======
      * NTL:ZZ ciphertext : the encyrpted message.
      */
+    ZZ encoded_message;
+    if (message > 0) {
+        encoded_message = message;
+    } else {
+        encoded_message = public_key.n + message;
+    }
     NTL::ZZ random = Gen_Coprime(public_key.n);
-    NTL::ZZ ciphertext = NTL::PowerMod(public_key.g, message, public_key.n * public_key.n) *
+    NTL::ZZ ciphertext = NTL::PowerMod(public_key.g, encoded_message, public_key.n * public_key.n) *
             NTL::PowerMod(random, public_key.n, public_key.n * public_key.n);
     return ciphertext % (public_key.n * public_key.n);
 }
@@ -184,6 +190,10 @@ ZZ combine_partial_decrypt(std::vector<std::pair<unsigned long, ZZ>> secret_shar
 //                             product_3, public_key.n * public_key.n);
     ZZ Inv_temp = NTL::InvMod(4 * public_key.delta * public_key.delta * public_key.theta % public_key.n, public_key.n);
     ZZ m = NTL::MulMod(L_function(product, public_key.n), Inv_temp, public_key.n);
+
+    if (m > (public_key.n / 2)) {
+        m -= public_key.n;
+    }
 
     return m;
 //    return ZZ(0);
