@@ -5,6 +5,7 @@
 #include "psi_protocols.h"
 #include "threshold_paillier.h"
 #include "bloom_filter.h"
+#include "sub_protocols.h"
 
 // TODO: Clean up
 // TODO: Fix all file headers
@@ -129,7 +130,8 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
 std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client_sets,
                                           std::vector<long> server_set,
                                           long threshold_l, long parties_t,
-                                          long key_length, long m_bits, long k_hashes) {
+                                          long key_length, long m_bits, long k_hashes,
+                                          long intersection_threshold_T) {
     //// MPSI protocol
     Keys keys;
     key_gen(&keys, key_length, threshold_l, parties_t);
@@ -213,33 +215,60 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
 
     // TODO: Send to clients?
 
-    // 4-5. For each ciphertext, compute a fresh encryption of k and run a Secure Comparison Protocol with it
-    // TODO: ...
+    // 4-6. For each ciphertext, compute a fresh encryption of k and run a Secure Comparison Protocol with it
+    std::vector<std::vector<ZZ>> client_comparisons;
+    client_comparisons.reserve(client_ciphertexts.size());
+    for (int i = 0; i < client_ciphertexts.size(); ++i) {
+        std::vector<ZZ> comparisons;
+        comparisons.reserve(client_ciphertexts.at(i).size());
+
+        for (int j = 0; j < client_ciphertexts.at(i).size(); ++j) {
+            comparisons.push_back(multiparty_comparison(encrypt(ZZ(k_hashes), keys.public_key),
+                                                        client_comparisons.at(i).at(j),
+                                                        threshold_l, ZZ(128), keys));
+        }
+
+        client_comparisons.push_back(comparisons);
+    }
+
+    // 7. Compute the sum of all comparisons belonging to a client and rerandomize
+    std::vector<ZZ> summed_comparisons;
+    summed_comparisons.reserve(client_comparisons.size());
+    // Initialize with the first comparisons
+    for (std::vector<ZZ> comparison : client_comparisons) {
+        summed_comparisons.push_back(comparison.at(0));
+    }
+    // Add up the other comparisons
+    for (int i = 0; i < client_comparisons.size(); ++i) {
+        for (int j = 1; j < client_comparisons.at(i).size(); ++j) {
+            summed_comparisons.at(i) = add_homomorphically(summed_comparisons.at(i), client_comparisons.at(i).at(j), keys.public_key);
+        }
+    }
+    // Rerandomize the ciphertexts
+    for (auto & ciphertext : summed_comparisons) {
+        ciphertext = rerandomize(ciphertext, keys.public_key);
+    }
+
+    // 8-9. Run SCP to compare each summed_comparison with a fresh encryption of intersection_threshold_T and rerandomize again
+    std::vector<ZZ> ciphertexts;
+    ciphertexts.reserve(summed_comparisons.size());
+    for (auto & summed_comparison : summed_comparisons) {
+        ciphertexts.push_back(rerandomize(
+                                 multiparty_comparison(summed_comparison,
+                                          encrypt(ZZ(intersection_threshold_T), keys.public_key),
+                                          threshold_l, ZZ(128), keys),
+                                      keys.public_key));
+    }
 
     // 4-5. Decrypt-to-zero each ciphertext and run the combining algorithm
     std::vector<ZZ> decryptions;
     decryptions.reserve(ciphertexts.size());
     for (ZZ ciphertext : ciphertexts) {
-        ZZ zero_ciphertext(1);
-
-        // Client 1 raises C to a nonzero random power and all the clients' results are multiplied
-        ZZ random = Gen_Coprime(keys.public_key.n);
-        zero_ciphertext = NTL::MulMod(zero_ciphertext,
-                                      NTL::PowerMod(ciphertext, random, keys.public_key.n * keys.public_key.n),
-                                      keys.public_key.n * keys.public_key.n);
-        // Client 2 raises C to a nonzero random power and all the clients' results are multiplied
-        random = Gen_Coprime(keys.public_key.n);
-        zero_ciphertext = NTL::MulMod(zero_ciphertext,
-                                      NTL::PowerMod(ciphertext, random, keys.public_key.n * keys.public_key.n),
-                                      keys.public_key.n * keys.public_key.n);
-
-        // TODO: Maybe server as well to make sure it's resistant when clients do not randomize
-
         // Partial decryption (let threshold + 1 parties decrypt)
         std::vector<std::pair<long, ZZ>> decryption_shares;
         decryption_shares.reserve(3);
         for (int i = 0; i < (threshold_l + 1); ++i) {
-            decryption_shares.emplace_back(i + 1, partial_decrypt(zero_ciphertext, keys.public_key,
+            decryption_shares.emplace_back(i + 1, partial_decrypt(ciphertext, keys.public_key,
                                                                   keys.private_keys.at(i)));
         }
 
@@ -251,7 +280,7 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
     // 6. Output the final intersection by selecting the elements from the server set that correspond to a decryption of zero
     std::vector<long> intersection;
     for (int i = 0; i < server_set.size(); ++i) {
-        if (decryptions.at(i) == 0) {
+        if (decryptions.at(i) == 1) {
             intersection.push_back(server_set.at(i));
         }
     }
