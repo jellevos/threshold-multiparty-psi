@@ -18,11 +18,11 @@ public:
             m_bits(m_bits),
             k_hashes(k_hashes) {}
 
-    void insert(unsigned long element);
-    bool contains(unsigned long element);
+    void insert(long element);
+    bool contains(long element);
     void invert();
     void encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_key);
-    static unsigned long hash(unsigned long input, unsigned long seed);
+    static long hash(long input, long seed);
 
 private:
     std::vector<bool> storage;  // TODO: Make private

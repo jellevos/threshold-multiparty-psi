@@ -166,37 +166,55 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
 
 
     /// Set Intersection generation by the server
-    // 1-2. Use the k hashes to select elements from the EIBFs and sum them up homomorphically,
+    // 1-3. Use the k hashes to select elements from the EIBFs and sum them up homomorphically,
     //      rerandomize afterwards.
-    std::vector<ZZ> ciphertexts;
-    ciphertexts.reserve(server_set.size());
+    std::vector<std::vector<ZZ>> client_ciphertexts;
+    client_ciphertexts.reserve(client_sets.size());
+    for (int i = 0; i < client_sets.size(); ++i) {
+        // Initialize an empty set for each client
+        client_ciphertexts.emplace_back();
+    }
+
     for (long element : server_set) {
         // Compute for the first hash function
         long index = BloomFilter::hash(element, 0) % m_bits;
-        ZZ ciphertext = client_ebfs.at(0).at(index);
-        for (int i = 1; i < client_ebfs.size(); ++i) {
-            // From client i add the bit at index from their EIBF
-            ciphertext = add_homomorphically(ciphertext, client_ebfs.at(i).at(index), keys.public_key);
+
+        std::vector<ZZ> client_ciphertext;
+        client_ciphertext.reserve(client_sets.size());
+        for (int i = 0; i < client_sets.size(); ++i) {
+            client_ciphertext.push_back(client_ebfs.at(0).at(index));
         }
+//        for (int i = 1; i < client_ebfs.size(); ++i) {
+//            // From client i add the bit at index from their EIBF
+//            ciphertext = add_homomorphically(ciphertext, client_ebfs.at(i).at(index), keys.public_key);
+//        }
 
         // Compute for the remaining hash functions
         for (int i = 1; i < k_hashes; ++i) {
-            index = BloomFilter::hash(element, i) % m_bits;
+            for (int j = 0; j < client_sets.size(); ++j) {
+                index = BloomFilter::hash(element, i) % m_bits;
 
-            // Sum up all selected ciphertexts
-            for (std::vector<ZZ> eibf : client_ebfs) {
-                ciphertext = add_homomorphically(ciphertext, eibf.at(index), keys.public_key);
+                client_ciphertext.at(j) = add_homomorphically(client_ciphertext.at(j),
+                                                              client_ebfs.at(0).at(index),
+                                                              keys.public_key);
+
+                // Sum up all selected ciphertexts
+//            for (std::vector<ZZ> eibf : client_ebfs) {
+//                ciphertext = add_homomorphically(ciphertext, eibf.at(index), keys.public_key);
+//            }
             }
         }
 
         // Rerandomize the ciphertext to prevent analysis due to the deterministic nature of homomorphic addition
-        ciphertext = rerandomize(ciphertext, keys.public_key);
-
-        ciphertexts.push_back(ciphertext);
+        for (int i = 0; i < client_sets.size(); ++i) {
+            client_ciphertexts.at(i).push_back(rerandomize(client_ciphertext.at(i), keys.public_key));
+        }
     }
 
-    // 3. The ciphertexts get sent to l parties
-    // TODO: Send to clients (look into threshold)
+    // TODO: Send to clients?
+
+    // 4-5. For each ciphertext, compute a fresh encryption of k and run a Secure Comparison Protocol with it
+    // TODO: ...
 
     // 4-5. Decrypt-to-zero each ciphertext and run the combining algorithm
     std::vector<ZZ> decryptions;

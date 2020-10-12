@@ -6,7 +6,7 @@
 
 
 /// Inserts the given element into the Bloom filter
-void BloomFilter::insert(unsigned long element) {
+void BloomFilter::insert(long element) {
     for (unsigned long i = 0; i < this->k_hashes; ++i) {
         unsigned long index = BloomFilter::hash(element, i) % this->m_bits;
         this->storage.at(index) = true;
@@ -14,9 +14,9 @@ void BloomFilter::insert(unsigned long element) {
 }
 
 /// Checks whether an element appears to have been inserted into the Bloom filter
-bool BloomFilter::contains(unsigned long element) {
+bool BloomFilter::contains(long element) {
     for (unsigned long i = 0; i < this->k_hashes; ++i) {
-        unsigned long index = BloomFilter::hash(element, i) % this->m_bits;
+        long index = BloomFilter::hash(element, i) % this->m_bits;
         if (not this->storage.at(index)) {
             return false;
         }
@@ -27,7 +27,7 @@ bool BloomFilter::contains(unsigned long element) {
 
 /// Inverts the Bloom filter in place so that all 0s become 1s and all 1s become 0s
 void BloomFilter::invert() {
-    for (unsigned long j = 0; j < this->m_bits; ++j) {
+    for (long j = 0; j < this->m_bits; ++j) {
         this->storage.at(j) = !this->storage.at(j);
     }
 }
@@ -43,7 +43,7 @@ void BloomFilter::encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_ke
 }
 
 /// Hashes the input with the given seed using MurmurHash3 and returns the first 32 bits as an unsigned long
-unsigned long BloomFilter::hash(unsigned long input, unsigned long seed) {
+long BloomFilter::hash(long input, long seed) {
     unsigned long output[4];
 
     MurmurHash3_x64_128(&input, (uint32_t) 8, seed, &output);
