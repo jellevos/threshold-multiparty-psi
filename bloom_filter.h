@@ -22,7 +22,7 @@ public:
     bool contains(long element);
     void invert();
     void encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_key);
-    static long hash(long input, long seed);
+    static unsigned long hash(long input, long seed);
 
 private:
     std::vector<bool> storage;  // TODO: Make private

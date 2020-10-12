@@ -43,7 +43,7 @@ void BloomFilter::encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_ke
 }
 
 /// Hashes the input with the given seed using MurmurHash3 and returns the first 32 bits as an unsigned long
-long BloomFilter::hash(long input, long seed) {
+unsigned long BloomFilter::hash(long input, long seed) {
     unsigned long output[4];
 
     MurmurHash3_x64_128(&input, (uint32_t) 8, seed, &output);

@@ -1,11 +1,7 @@
 //
 // Created by jelle on 09-10-20.
 //
-
 #include "psi_protocols.h"
-#include "threshold_paillier.h"
-#include "bloom_filter.h"
-#include "sub_protocols.h"
 
 // TODO: Clean up
 // TODO: Fix all file headers
@@ -58,7 +54,7 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
     ciphertexts.reserve(server_set.size());
     for (long element : server_set) {
         // Compute for the first hash function
-        long index = BloomFilter::hash(element, 0) % m_bits;
+        unsigned long index = BloomFilter::hash(element, 0) % m_bits;
         ZZ ciphertext = client_eibfs.at(0).at(index);
         for (int i = 1; i < client_eibfs.size(); ++i) {
             // From client i add the bit at index from their EIBF
