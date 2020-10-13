@@ -180,7 +180,7 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
         std::vector<ZZ> client_ciphertext;
         client_ciphertext.reserve(client_sets.size());
         for (int i = 0; i < client_sets.size(); ++i) {
-            client_ciphertext.push_back(client_ebfs.at(0).at(index));
+            client_ciphertext.push_back(client_ebfs.at(i).at(index));
         }
 
         // Compute for the remaining hash functions
@@ -189,7 +189,7 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
                 index = BloomFilter::hash(element, i) % m_bits;
 
                 client_ciphertext.at(j) = add_homomorphically(client_ciphertext.at(j),
-                                                              client_ebfs.at(0).at(index),
+                                                              client_ebfs.at(j).at(index),
                                                               keys.public_key);
             }
         }
@@ -237,6 +237,13 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
     std::vector<ZZ> element_ciphertexts;
     element_ciphertexts.reserve(summed_comparisons.size());
     for (auto & summed_comparison : summed_comparisons) {
+        std::vector<std::pair<long, ZZ>> yeet;
+        yeet.reserve(threshold_l + 1);
+        for (int i = 0; i < (threshold_l + 1); ++i) {
+            yeet.emplace_back(i + 1, partial_decrypt(summed_comparison, keys.public_key,
+                                                                  keys.private_keys.at(i)));
+        }
+
         element_ciphertexts.push_back(rerandomize(
                                  multiparty_comparison(encrypt(ZZ(intersection_threshold_T), keys.public_key),
                                                        summed_comparison,

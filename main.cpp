@@ -32,7 +32,7 @@ int main() {
                                                             2, 3,
                                                             1024,
                                                             16, 4,
-                                                            2);
+                                                            1);
 
     std::cout << "The resulting threshold set intersection was: { ";
     for (long element : result) {
