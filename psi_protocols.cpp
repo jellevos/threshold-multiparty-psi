@@ -209,6 +209,27 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
         }
     }
 
+    for (auto & client_ciphertext : client_ciphertexts) {
+        for (ZZ ciphertext : client_ciphertext) {
+//            ZZ x = multiparty_comparison(encrypt(ZZ(k_hashes), keys.public_key),
+//                                         ciphertext,
+//                                         threshold_l, ZZ(128), keys);
+//            ZZ x = encrypt(ZZ(k_hashes), keys.public_key);
+            ZZ x = ciphertext;
+            // Partial decryption (let threshold + 1 parties decrypt)
+            std::vector<std::pair<long, ZZ>> decryption_shares;
+            decryption_shares.reserve(threshold_l + 1);
+            for (int i = 0; i < (threshold_l + 1); ++i) {
+                decryption_shares.emplace_back(i + 1, partial_decrypt(x, keys.public_key,
+                                                                      keys.private_keys.at(i)));
+            }
+
+            // Combining algorithm
+            //std::cout << ciphertext << std::endl;
+            std::cout << "x: " << combine_partial_decrypt(decryption_shares, keys.public_key) << std::endl;
+        }
+    }
+
     // TODO: Send to clients?
     // 4-6. For each ciphertext, compute a fresh encryption of k and run a Secure Comparison Protocol with it
     std::vector<std::vector<ZZ>> client_comparisons;
@@ -218,6 +239,7 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
         comparisons.reserve(client_ciphertexts.at(i).size());
 
         for (int j = 0; j < client_ciphertexts.at(i).size(); ++j) {
+            //std::cout << client_ciphertexts.at(i).at(j) << std::endl;
             comparisons.push_back(multiparty_comparison(encrypt(ZZ(k_hashes), keys.public_key),
                                                         client_ciphertexts.at(i).at(j),
                                                         threshold_l, ZZ(128), keys));

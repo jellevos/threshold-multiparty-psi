@@ -11,8 +11,8 @@ int main() {
     key_gen(&keys, 1024, 3, 4);
     // TODO: Important! Rewrite to long instead of unsigned long, use upper half of modulus as negative range
     // It needs to hold that key_length > 2^random_bound + 2^input_length + 4
-    std::cout << multiparty_comparison(encrypt(ZZ(7), keys.public_key),
-                                       encrypt(ZZ(6), keys.public_key),
+    std::cout << multiparty_comparison(encrypt(ZZ(4), keys.public_key),
+                                       encrypt(ZZ(3), keys.public_key),
                                        3, ZZ(256), keys) << std::endl;
 
 
