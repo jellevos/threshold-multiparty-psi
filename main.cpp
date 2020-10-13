@@ -7,15 +7,6 @@
 // TODO: Cache n^2
 // TODO: Allow variable set sizes?
 int main() {
-    Keys keys;
-    key_gen(&keys, 1024, 3, 4);
-    // TODO: Important! Rewrite to long instead of unsigned long, use upper half of modulus as negative range
-    // It needs to hold that key_length > 2^random_bound + 2^input_length + 4
-    std::cout << multiparty_comparison(encrypt(ZZ(4), keys.public_key),
-                                       encrypt(ZZ(3), keys.public_key),
-                                       3, ZZ(256), keys) << std::endl;
-
-
     std::vector<long> client1_set({1, 3, 5});
     std::vector<long> client2_set({3, 4, 5});
     std::vector<long> server_set({5, 3, 2});
