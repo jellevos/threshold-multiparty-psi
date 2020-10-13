@@ -238,9 +238,9 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
     element_ciphertexts.reserve(summed_comparisons.size());
     for (auto & summed_comparison : summed_comparisons) {
         element_ciphertexts.push_back(rerandomize(
-                                 multiparty_comparison(summed_comparison,
-                                          encrypt(ZZ(intersection_threshold_T), keys.public_key),
-                                          threshold_l, ZZ(128), keys),
+                                 multiparty_comparison(encrypt(ZZ(intersection_threshold_T), keys.public_key),
+                                                       summed_comparison,
+                                                       threshold_l, ZZ(128), keys),
                                       keys.public_key));
     }
 

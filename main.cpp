@@ -1,15 +1,14 @@
 #include <iostream>
 #include <vector>
 #include "psi_protocols.h"
-#include "sub_protocols.h"
 
 
 // TODO: Cache n^2
 // TODO: Allow variable set sizes?
 int main() {
-    std::vector<long> client1_set({1, 3, 5});
-    std::vector<long> client2_set({3, 4, 5});
-    std::vector<long> server_set({5, 3, 2});
+    std::vector<long> client1_set({1, 3, 5, 7});
+    std::vector<long> client2_set({2, 3, 4, 5});
+    std::vector<long> server_set({6, 5, 2, 1});
 
     std::cout << "Computing the set intersection between multiple parties using a (2, 3)-encryption of 1024 bits."
               << std::endl;
