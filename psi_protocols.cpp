@@ -101,7 +101,7 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
 
         // Partial decryption (let threshold + 1 parties decrypt)
         std::vector<std::pair<long, ZZ>> decryption_shares;
-        decryption_shares.reserve(3);
+        decryption_shares.reserve(threshold_l + 1);
         for (int i = 0; i < (threshold_l + 1); ++i) {
             decryption_shares.emplace_back(i + 1, partial_decrypt(zero_ciphertext, keys.public_key,
                                                                   keys.private_keys.at(i)));
@@ -175,7 +175,7 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
 
     for (long element : server_set) {
         // Compute for the first hash function
-        long index = BloomFilter::hash(element, 0) % m_bits;
+        unsigned long index = BloomFilter::hash(element, 0) % m_bits;
 
         std::vector<ZZ> client_ciphertext;
         client_ciphertext.reserve(client_sets.size());
@@ -210,7 +210,6 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
     }
 
     // TODO: Send to clients?
-
     // 4-6. For each ciphertext, compute a fresh encryption of k and run a Secure Comparison Protocol with it
     std::vector<std::vector<ZZ>> client_comparisons;
     client_comparisons.reserve(client_ciphertexts.size());
@@ -220,7 +219,7 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
 
         for (int j = 0; j < client_ciphertexts.at(i).size(); ++j) {
             comparisons.push_back(multiparty_comparison(encrypt(ZZ(k_hashes), keys.public_key),
-                                                        client_comparisons.at(i).at(j),
+                                                        client_ciphertexts.at(i).at(j),
                                                         threshold_l, ZZ(128), keys));
         }
 
@@ -229,40 +228,60 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
 
     // 7. Compute the sum of all comparisons belonging to a client and rerandomize
     std::vector<ZZ> summed_comparisons;
-    summed_comparisons.reserve(client_comparisons.size());
-    // Initialize with the first comparisons
-    for (std::vector<ZZ> comparison : client_comparisons) {
-        summed_comparisons.push_back(comparison.at(0));
-    }
-    // Add up the other comparisons
-    for (int i = 0; i < client_comparisons.size(); ++i) {
-        for (int j = 1; j < client_comparisons.at(i).size(); ++j) {
-            summed_comparisons.at(i) = add_homomorphically(summed_comparisons.at(i), client_comparisons.at(i).at(j), keys.public_key);
+    summed_comparisons.reserve(server_set.size());
+    for (int i = 0; i < server_set.size(); ++i) {
+        // Initialize with the first client
+        ZZ sum = client_comparisons.at(0).at(i);
+
+        // Add remaining elements from other clients
+        for (int j = 1; j < client_comparisons.size(); ++j) {
+            sum = add_homomorphically(sum, client_comparisons.at(j).at(i), keys.public_key);
         }
-    }
-    // Rerandomize the ciphertexts
-    for (auto & ciphertext : summed_comparisons) {
-        ciphertext = rerandomize(ciphertext, keys.public_key);
+
+        // Rerandomize
+        summed_comparisons.push_back(rerandomize(sum, keys.public_key));
     }
 
+//    // Initialize with the first comparisons
+//    for (std::vector<ZZ> comparison : client_comparisons) {
+//        ZZ sum = comparison.at(0);
+//        //summed_comparisons.push_back(comparison.at(0));
+//        for (ZZ c : comparison) {
+//            sum = add_homomorphically(sum, c, keys.public_key);
+//        }
+//        summed_comparisons.push_back(rerandomize(sum, keys.public_key));
+//    }
+    // Add up the other comparisons
+//    for (int i = 0; i < client_comparisons.size(); ++i) {
+//        for (int j = 1; j < client_comparisons.at(i).size(); ++j) {
+//            summed_comparisons.at(i) = add_homomorphically(summed_comparisons.at(i), client_comparisons.at(i).at(j), keys.public_key);
+//        }
+//    }
+    // Rerandomize the ciphertexts
+//    for (auto & ciphertext : summed_comparisons) {
+//        ciphertext = rerandomize(ciphertext, keys.public_key);
+//    }
+
     // 8-9. Run SCP to compare each summed_comparison with a fresh encryption of intersection_threshold_T and rerandomize again
-    std::vector<ZZ> ciphertexts;
-    ciphertexts.reserve(summed_comparisons.size());
+    std::cout << "second_round" << std::endl;
+    std::vector<ZZ> element_ciphertexts;
+    element_ciphertexts.reserve(summed_comparisons.size());
     for (auto & summed_comparison : summed_comparisons) {
-        ciphertexts.push_back(rerandomize(
+        element_ciphertexts.push_back(rerandomize(
                                  multiparty_comparison(summed_comparison,
                                           encrypt(ZZ(intersection_threshold_T), keys.public_key),
                                           threshold_l, ZZ(128), keys),
                                       keys.public_key));
     }
 
+    // TODO: Fix numbers
     // 4-5. Decrypt-to-zero each ciphertext and run the combining algorithm
     std::vector<ZZ> decryptions;
-    decryptions.reserve(ciphertexts.size());
-    for (ZZ ciphertext : ciphertexts) {
+    decryptions.reserve(element_ciphertexts.size());
+    for (ZZ ciphertext : element_ciphertexts) {
         // Partial decryption (let threshold + 1 parties decrypt)
         std::vector<std::pair<long, ZZ>> decryption_shares;
-        decryption_shares.reserve(3);
+        decryption_shares.reserve(threshold_l + 1);
         for (int i = 0; i < (threshold_l + 1); ++i) {
             decryption_shares.emplace_back(i + 1, partial_decrypt(ciphertext, keys.public_key,
                                                                   keys.private_keys.at(i)));
@@ -272,10 +291,12 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
         decryptions.push_back(combine_partial_decrypt(decryption_shares,
                                                       keys.public_key));
     }
+    std::cout << "yeet" << std::endl;
 
     // 6. Output the final intersection by selecting the elements from the server set that correspond to a decryption of zero
     std::vector<long> intersection;
     for (int i = 0; i < server_set.size(); ++i) {
+        std::cout << decryptions.at(i) << std::endl;
         if (decryptions.at(i) == 1) {
             intersection.push_back(server_set.at(i));
         }

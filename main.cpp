@@ -32,7 +32,7 @@ int main() {
     for (long element : result) {
         std::cout << element << " ";
     }
-    std::cout << "}." << std::endl;
+    std::cout << "}." << std::endl << std::endl;
 
 
     std::cout << "Computing the threshold set intersection between multiple parties using a (2, 3)-encryption of 1024 bits."
