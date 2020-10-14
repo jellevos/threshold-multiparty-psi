@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "psi_protocols.h"
+#include "benchmarking.h"
 
 
 // TODO: Cache n^2
@@ -13,16 +14,20 @@ int main() {
     std::cout << "Computing the set intersection between multiple parties using a (2, 3)-encryption of 1024 bits."
               << std::endl;
 
+    auto start = std::chrono::high_resolution_clock::now();
     std::vector<long> result = multiparty_psi(std::vector({client1_set, client2_set}), server_set,
                                               2, 3,
                                               1024,
                                               16, 4);
+    auto stop = std::chrono::high_resolution_clock::now();
 
     std::cout << "The resulting set intersection was: { ";
     for (long element : result) {
         std::cout << element << " ";
     }
-    std::cout << "}." << std::endl << std::endl;
+    std::cout << "}." << std::endl;
+    std::cout << "Took: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << " ms."
+        << std::endl << std::endl;
 
 
     std::cout << "Computing the threshold set intersection between multiple parties using a (2, 3)-encryption of 1024 bits."
@@ -38,7 +43,10 @@ int main() {
     for (long element : result) {
         std::cout << element << " ";
     }
-    std::cout << "}." << std::endl;
+    std::cout << "}." << std::endl << std::endl;
+
+    std::cout << "Running benchmarks (without simulated delays):" << std::endl;
+    benchmark(std::vector<long>({3, 4, 8, 16}), std::vector<long>({8, 12, 16, 20}));
 
     return 0;
 }
