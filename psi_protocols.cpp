@@ -7,14 +7,10 @@
 // TODO: Fix all file headers
 std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
                                  std::vector<long> server_set,
-                                 long threshold_l, long parties_t,
-                                 long key_length, long m_bits, long k_hashes) {
+                                 long threshold_l,
+                                 long m_bits, long k_hashes,
+                                 Keys &keys) {
     //// MPSI protocol
-    Keys keys;
-    key_gen(&keys, key_length, threshold_l, parties_t);
-    // -> Normally, the keys would be distributed to the parties now
-    // TODO: Implement sending
-
 
     /// Initialization
     // TODO: Send?
