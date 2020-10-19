@@ -13,6 +13,7 @@ using namespace NTL;
 struct PublicKey {
     ZZ g;
     ZZ n;
+    ZZ n_squared;
     ZZ theta;
     ZZ delta;
     long threshold_l;

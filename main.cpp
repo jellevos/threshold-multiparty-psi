@@ -5,7 +5,6 @@
 // #include "NTL/BasicThreadPool.h"
 
 
-// TODO: Cache n^2
 // TODO: Allow variable set sizes?
 int main() {
     // SetNumThreads(8);
