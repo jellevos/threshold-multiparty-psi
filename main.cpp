@@ -2,11 +2,14 @@
 #include <vector>
 #include "psi_protocols.h"
 #include "benchmarking.h"
+// #include "NTL/BasicThreadPool.h"
 
 
 // TODO: Cache n^2
 // TODO: Allow variable set sizes?
 int main() {
+    // SetNumThreads(8);
+
     Keys keys;
     key_gen(&keys, 1024, 2, 3);
 

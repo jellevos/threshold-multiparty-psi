@@ -32,7 +32,6 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
                 // Generate a set for each client
                 for (int j = 0; j < t; ++j) {
                     std::vector<long> set;
-                    // TODO: Check if this range works
                     set.reserve(1 << exp);
                     for (unsigned long k = 0; k < (1 << exp); ++k) {
                         // TODO: User random long instead of int
