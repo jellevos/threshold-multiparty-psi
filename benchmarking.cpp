@@ -38,7 +38,9 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
                         // TODO: User random long instead of int
                         set.push_back(rand());
                     }
+                    client_sets.push_back(set);
                 }
+                experiment_sets.push_back(client_sets);
             }
 
             auto start = std::chrono::high_resolution_clock::now();
@@ -46,10 +48,14 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
             // Run each experiment 10 times
             for (int i = 0; i < 10; ++i) {
                 // TODO: Precompute m and k
+                std::cout << "start" << std::endl;
                 multiparty_psi(experiment_sets.at(i), 1, 16, 4, keys.at(t).first);
+                std::cout << "stop" << std::endl;
             }
 
             auto stop = std::chrono::high_resolution_clock::now();
+
+            std::cout << (stop-start).count() << std::endl;
         }
     }
 }

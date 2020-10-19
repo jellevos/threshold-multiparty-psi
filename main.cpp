@@ -7,6 +7,9 @@
 // TODO: Cache n^2
 // TODO: Allow variable set sizes?
 int main() {
+    Keys keys;
+    key_gen(&keys, 1024, 2, 3);
+
     std::vector<long> client1_set({1, 3, 5, 7});
     std::vector<long> client2_set({2, 3, 4, 5});
     std::vector<long> server_set({6, 5, 2, 1});
@@ -16,9 +19,9 @@ int main() {
 
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<long> result = multiparty_psi(std::vector({client1_set, client2_set}), server_set,
-                                              2, 3,
-                                              1024,
-                                              16, 4);
+                                              2,
+                                              16, 4,
+                                              keys);
     auto stop = std::chrono::high_resolution_clock::now();
 
     std::cout << "The resulting set intersection was: { ";
