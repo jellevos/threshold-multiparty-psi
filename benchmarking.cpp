@@ -23,14 +23,14 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
     // -> Normally, the keys would be distributed to the parties now
 
     // Run the experiments
-    for (long t : parties_t) {
+    for (int t_i = 0; t_i < parties_t.size(); ++t_i) {
         for (long exp : set_size_exponents) {
             // Generate sets for each experiment
             std::vector<std::vector<std::vector<long>>> experiment_sets;
             for (int i = 0; i < 10; ++i) {
                 std::vector<std::vector<long>> client_sets;
                 // Generate a set for each client
-                for (int j = 0; j < t; ++j) {
+                for (int j = 0; j < parties_t.at(t_i); ++j) {
                     std::vector<long> set;
                     set.reserve(1 << exp);
                     for (unsigned long k = 0; k < (1 << exp); ++k) {
@@ -48,7 +48,7 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
             for (int i = 0; i < 10; ++i) {
                 // TODO: Precompute m and k
                 std::cout << "start" << std::endl;
-                multiparty_psi(experiment_sets.at(i), 1, 16, 4, keys.at(t).first);
+                multiparty_psi(experiment_sets.at(i), 1, 16, 4, keys.at(t_i).first);
                 std::cout << "stop" << std::endl;
             }
 
