@@ -42,13 +42,18 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
                 experiment_sets.push_back(client_sets);
             }
 
+            // Use epsilon = 2^-7, which gives less than 1% false positive rate
+            long m_bits = ceil((7.0 * (1 << exp)) / log(2.0));
+            long k_hashes = 7;
+            std::cout << "m: " << m_bits << std::endl;
+
             auto start = std::chrono::high_resolution_clock::now();
 
             // Run each experiment 10 times
             for (int i = 0; i < 10; ++i) {
                 // TODO: Precompute m and k
                 std::cout << "start" << std::endl;
-                multiparty_psi(experiment_sets.at(i), 1, 16, 4, keys.at(t_i).first);
+                multiparty_psi(experiment_sets.at(i), 1, m_bits, k_hashes, keys.at(t_i).first);
                 std::cout << "stop" << std::endl;
             }
 
