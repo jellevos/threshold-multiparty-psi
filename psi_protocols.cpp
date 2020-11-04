@@ -1,7 +1,24 @@
 //
 // Created by jelle on 09-10-20.
 //
+#include <thread>
+#include <future>
 #include "psi_protocols.h"
+
+template <class T>
+void await_futures(std::vector<std::future<T>> &futures) {
+    bool processing = true;
+    while (processing) {
+        processing = false;
+
+        for (auto &future : futures) {
+            if (not future.valid()) {
+                processing = true;
+                break;
+            }
+        }
+    }
+}
 
 std::vector<long> multiparty_psi(std::vector<std::vector<long>> sets,
                                  long threshold_l,
@@ -16,6 +33,24 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> sets,
     std::vector<long> server_set = sets.at(sets.size() - 1);
 
     return multiparty_psi(client_sets, server_set, threshold_l, m_bits, k_hashes, keys);
+}
+
+std::vector<ZZ> generate_eibf(std::vector<long> &client_set, long m_bits, long k_hashes, Keys &keys) {
+    BloomFilter bloom_filter(m_bits, k_hashes);
+
+    // Step 1
+    for (long element : client_set) {
+        bloom_filter.insert(element);
+    }
+
+    // Step 2
+    bloom_filter.invert();
+
+    // Step 3
+    std::vector<ZZ> eibf;
+    bloom_filter.encrypt_all(eibf, keys.public_key);
+
+    return eibf;
 }
 
 // TODO: Clean up
@@ -34,24 +69,20 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
     /// Local EIBF generation
 
     // 1-3. Clients compute their Bloom filter, invert it and encrypt it (generating EIBFs)
+    std::vector<std::future<std::vector<ZZ>>> eibf_futures;
+    eibf_futures.reserve(client_sets.size());
+    for (auto & client_set : client_sets) {
+        eibf_futures.push_back(std::async(std::launch::async, generate_eibf, std::ref(client_set), m_bits, k_hashes, std::ref(keys)));
+    }
+
+    // Wait till the processing is done
+    await_futures(eibf_futures);
+
+    // Extract the generated EIBFs from the clients
     std::vector<std::vector<ZZ>> client_eibfs;
     client_eibfs.reserve(client_sets.size());
-    for (std::vector<long> client_set : client_sets) {
-        BloomFilter bloom_filter(m_bits, k_hashes);
-
-        // Step 1
-        for (long element : client_set) {
-            bloom_filter.insert(element);
-        }
-
-        // Step 2
-        bloom_filter.invert();
-
-        // Step 3
-        std::vector<ZZ> eibf;
-        bloom_filter.encrypt_all(eibf, keys.public_key);
-
-        client_eibfs.push_back(eibf);
+    for (std::future<std::vector<ZZ>> &future : eibf_futures) {
+        client_eibfs.push_back(future.get());
     }
 
     // 4. Send the encrypted Bloom filters to the server
