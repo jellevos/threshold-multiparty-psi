@@ -165,16 +165,8 @@ ZZ combine_partial_decrypt(std::vector<std::pair<long, ZZ>> secret_shares, const
             }
         }
 
-//        if (lambda < 1) {
-//            lambda *= -1;
-//        }
         lambdas.push_back(lambda);
-
-//        c_prime = (c_prime * decrypted_shares[i].GetPowModN(2 * lambda, this->nSquared)) % this->nSquared;
     }
-//    ZZ lambda1(3);
-//    ZZ lambda2(-3);
-//    ZZ lambda3(1);
 
     ZZ product(1);
     for (int i = 0; i < (public_key.threshold_l + 1); ++i) {
@@ -182,16 +174,7 @@ ZZ combine_partial_decrypt(std::vector<std::pair<long, ZZ>> secret_shares, const
                          PowerMod(secret_shares.at(i).second, 2 * lambdas.at(i), public_key.n_squared),
                          public_key.n_squared);
     }
-//    ZZ u1 = public_key.delta * lambda1;
-//    ZZ u2 = public_key.delta * lambda2;
-//    ZZ u3 = public_key.delta * lambda3;
-//
-//    ZZ product_1 = NTL::PowerMod(c1, 2 * u1, public_key.n * public_key.n);
-//    ZZ product_2 = NTL::PowerMod(c2, 2 * u2, public_key.n * public_key.n);
-//    ZZ product_3 = NTL::PowerMod(c3, 2 * u3, public_key.n * public_key.n);
-//
-//    ZZ product = NTL::MulMod(NTL::MulMod(product_1, product_2, public_key.n * public_key.n),
-//                             product_3, public_key.n * public_key.n);
+
     ZZ Inv_temp = NTL::InvMod(4 * public_key.delta * public_key.delta * public_key.theta % public_key.n, public_key.n);
     ZZ m = NTL::MulMod(L_function(product, public_key.n), Inv_temp, public_key.n);
 
