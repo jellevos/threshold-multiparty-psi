@@ -13,7 +13,7 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
     keys.reserve(parties_t.size());
     for (long t : parties_t) {
         Keys k_1;
-        key_gen(&k_1, 1024, 1, t);
+        key_gen(&k_1, 1024, t/2, t);
 
         Keys k_tm1;
         key_gen(&k_tm1, 1024, t-1, t);
@@ -48,17 +48,25 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
             long m_bits = ceil((7.0 * (1 << exp)) / log(2.0));
             long k_hashes = 7;
 
-            auto start = std::chrono::high_resolution_clock::now();
-
             // Run each experiment 10 times
-            for (int i = 0; i < 10; ++i) {
-                // TODO: Precompute m and k
-                multiparty_psi(experiment_sets.at(i), 1, m_bits, k_hashes, keys.at(t_i).first);
-            }
 
+            // threshold l = t / 2
+            auto start = std::chrono::high_resolution_clock::now();
+            for (int i = 0; i < 10; ++i) {
+                multiparty_psi(experiment_sets.at(i), parties_t.at(t_i) / 2, m_bits, k_hashes, keys.at(t_i).first);
+            }
             auto stop = std::chrono::high_resolution_clock::now();
 
-            std::cout << (stop-start).count() << ", ";
+            std::cout << "(" << (stop-start).count() << ", ";
+
+            // threshold l = t - 1
+            start = std::chrono::high_resolution_clock::now();
+            for (int i = 0; i < 10; ++i) {
+                multiparty_psi(experiment_sets.at(i), parties_t.at(t_i) - 1, m_bits, k_hashes, keys.at(t_i).second);
+            }
+            stop = std::chrono::high_resolution_clock::now();
+
+            std::cout << (stop-start).count() << "), ";
         }
 
         std::cout << "])" << std::endl;

@@ -51,7 +51,7 @@ int main() {
     std::cout << "}." << std::endl << std::endl;
 
     std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
-    benchmark(std::vector<long>({4, 8, 12, 16}), std::vector<long>({2, 3, 4, 5, 6}));
+    benchmark(std::vector<long>({10, 20, 30, 40, 50}), std::vector<long>({4, 8}));
 
     return 0;
 }
