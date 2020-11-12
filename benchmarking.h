@@ -7,7 +7,7 @@
 
 #include <vector>
 
-// TODO: How are k and m decided?
 void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents);
+void threshold_benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents);
 
 #endif //BENCHMARKING_H
