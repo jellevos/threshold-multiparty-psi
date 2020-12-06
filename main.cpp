@@ -59,7 +59,7 @@ int main() {
 
     if (std::cin.get() == 'y') {
         std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
-        benchmark(std::vector<long>({10, 20, 30, 40, 50}), std::vector<long>({4, 8}));
+        benchmark(std::vector<long>({10, 20, 30, 40, 50}), std::vector<long>({4, 6, 8}));
     }
 
     std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n');

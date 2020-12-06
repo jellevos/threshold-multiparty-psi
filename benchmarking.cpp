@@ -7,6 +7,30 @@
 #include "psi_protocols.h"
 
 
+double sample_mean(const std::vector<long>& measurements) {
+    // Computes the sample mean
+    double sum = 0;
+
+    for (long measurement : measurements) {
+        sum += measurement;
+    }
+
+    return sum / measurements.size();
+}
+
+
+double sample_std(const std::vector<long>& measurements, double mean) {
+    // Computes the corrected sample standard deviation
+    double sum = 0;
+
+    for (long measurement : measurements) {
+        sum += pow(measurement - mean, 2);
+    }
+
+    return sqrt(sum / (measurements.size() - 1.0));
+}
+
+
 void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents) {
     // Pre-generate all keys
     std::vector<std::pair<Keys, Keys>> keys;
@@ -49,24 +73,39 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
             long k_hashes = 7;
 
             // Run each experiment 10 times
+            std::vector<double> means_t2;
+            std::vector<double> std_t2;
+            std::vector<double> means_tm1;
+            std::vector<double> std_tm1;
 
             // threshold l = t / 2
-            auto start = std::chrono::high_resolution_clock::now();
-            for (int i = 0; i < 10; ++i) {
-                multiparty_psi(experiment_sets.at(i), parties_t.at(t_i) / 2, m_bits, k_hashes, keys.at(t_i).first);
-            }
-            auto stop = std::chrono::high_resolution_clock::now();
+            std::vector<long> times;
 
-            std::cout << "(" << (stop-start).count() << ", ";
+            for (int i = 0; i < 10; ++i) {
+                auto start = std::chrono::high_resolution_clock::now();
+                multiparty_psi(experiment_sets.at(i), parties_t.at(t_i) / 2, m_bits, k_hashes, keys.at(t_i).first);
+                auto stop = std::chrono::high_resolution_clock::now();
+
+                times.push_back((stop-start).count());
+            }
+
+            double mean = sample_mean(times);
+            double std = sample_std(times, mean);
+            std::cout << "[(" << mean << ", " << std << "), ";
 
             // threshold l = t - 1
-            start = std::chrono::high_resolution_clock::now();
-            for (int i = 0; i < 10; ++i) {
-                multiparty_psi(experiment_sets.at(i), parties_t.at(t_i) - 1, m_bits, k_hashes, keys.at(t_i).second);
-            }
-            stop = std::chrono::high_resolution_clock::now();
 
-            std::cout << (stop-start).count() << "), ";
+            for (int i = 0; i < 10; ++i) {
+                auto start = std::chrono::high_resolution_clock::now();
+                multiparty_psi(experiment_sets.at(i), parties_t.at(t_i) - 1, m_bits, k_hashes, keys.at(t_i).second);
+                auto stop = std::chrono::high_resolution_clock::now();
+
+                times.push_back((stop-start).count());
+            }
+
+            mean = sample_mean(times);
+            std = sample_std(times, mean);
+            std::cout << "(" << mean << ", " << std << ")], ";
         }
 
         std::cout << "])" << std::endl;
@@ -116,26 +155,41 @@ void threshold_benchmark(std::vector<long> parties_t, std::vector<long> set_size
             long k_hashes = 7;
 
             // Run each experiment 10 times
+            std::vector<double> means_t2;
+            std::vector<double> std_t2;
+            std::vector<double> means_tm1;
+            std::vector<double> std_tm1;
 
             // threshold l = t / 2
-            auto start = std::chrono::high_resolution_clock::now();
+            std::vector<long> times;
+
             for (int i = 0; i < 10; ++i) {
+                auto start = std::chrono::high_resolution_clock::now();
                 threshold_multiparty_psi(experiment_sets.at(i), parties_t.at(t_i) / 2, m_bits, k_hashes,
                                          experiment_sets.at(0).size() / 2, keys.at(t_i).first);
-            }
-            auto stop = std::chrono::high_resolution_clock::now();
+                auto stop = std::chrono::high_resolution_clock::now();
 
-            std::cout << "(" << (stop-start).count() << ", ";
+                times.push_back((stop-start).count());
+            }
+
+            double mean = sample_mean(times);
+            double std = sample_std(times, mean);
+            std::cout << "[(" << mean << ", " << std << "), ";
 
             // threshold l = t - 1
-            start = std::chrono::high_resolution_clock::now();
+
             for (int i = 0; i < 10; ++i) {
+                auto start = std::chrono::high_resolution_clock::now();
                 threshold_multiparty_psi(experiment_sets.at(i), parties_t.at(t_i) - 1, m_bits, k_hashes,
                                          experiment_sets.at(0).size() / 2, keys.at(t_i).second);
-            }
-            stop = std::chrono::high_resolution_clock::now();
+                auto stop = std::chrono::high_resolution_clock::now();
 
-            std::cout << (stop-start).count() << "), ";
+                times.push_back((stop-start).count());
+            }
+
+            mean = sample_mean(times);
+            std = sample_std(times, mean);
+            std::cout << "(" << mean << ", " << std << ")], ";
         }
 
         std::cout << "])" << std::endl;
