@@ -59,7 +59,7 @@ int main() {
 
     if (std::cin.get() == 'y') {
         std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
-        benchmark(std::vector<long>({10, 20, 30, 40, 50}), std::vector<long>({4, 6, 8}));
+        benchmark(std::vector<long>({10, 20, 30, 40, 50, 60, 70, 80, 90, 100}), std::vector<long>({4, 6, 7}));
     }
 
     std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n');
@@ -68,7 +68,7 @@ int main() {
 
     if (std::cin.get() == 'y') {
         std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
-        threshold_benchmark(std::vector<long>({3, 4, 6, 8}), std::vector<long>({2, 4, 6}));
+        threshold_benchmark(std::vector<long>({5, 15, 25, 35}), std::vector<long>({2, 4, 5}));
     }
 
     return 0;

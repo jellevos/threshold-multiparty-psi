@@ -16,3 +16,10 @@
 - Run `make`
 - Check if it was successful using `make check`
 - Install using `sudo make install`
+
+# Execution
+The two protocols can simply be run by compiling using `cmake` or indirectly by executing `main.cpp` from an IDE.
+
+# Acknowledgements
+_Many thanks to the initial threshold Paillier implementation from:_
+https://github.com/ziyao002/Threshold-Paillier-with-ZKP
