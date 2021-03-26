@@ -38,20 +38,38 @@ int main() {
     std::cout << "Computing the threshold set intersection between multiple parties using a (2, 3)-encryption of 1024 bits."
               << std::endl;
 
+    start = std::chrono::high_resolution_clock::now();
     result = threshold_multiparty_psi(std::vector({client1_set, client2_set}), server_set,
-                                                            2, 3,
-                                                            1024,
+                                                            2,
                                                             16, 4,
-                                                            1);
+                                                            1,
+                                                            keys);
+    stop = std::chrono::high_resolution_clock::now();
+
 
     std::cout << "The resulting threshold set intersection was: { ";
     for (long element : result) {
         std::cout << element << " ";
     }
     std::cout << "}." << std::endl << std::endl;
+    std::cout << "Took: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << " ms."
+              << std::endl << std::endl;
 
-    std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
-    benchmark(std::vector<long>({4, 8, 12, 16}), std::vector<long>({2, 3, 4, 5, 6}));
+    std::cout << "Run benchmarks for MPSI (y/n): ";
+
+    if (std::cin.get() == 'y') {
+        std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
+        benchmark(std::vector<long>({10, 20, 30, 40, 50, 60, 70, 80, 90, 100}), std::vector<long>({4, 6, 7}));
+    }
+
+    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n');
+
+    std::cout << "Run benchmarks for T-MPSI (y/n): ";
+
+    if (std::cin.get() == 'y') {
+        std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
+        threshold_benchmark(std::vector<long>({5, 15, 25, 35}), std::vector<long>({2, 4, 5}));
+    }
 
     return 0;
 }

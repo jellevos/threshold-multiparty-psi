@@ -1,7 +1,24 @@
 //
 // Created by jelle on 09-10-20.
 //
+#include <thread>
+#include <future>
 #include "psi_protocols.h"
+
+template <class T>
+void await_futures(std::vector<std::future<T>> &futures) {
+    bool processing = true;
+    while (processing) {
+        processing = false;
+
+        for (auto &future : futures) {
+            if (not future.valid()) {
+                processing = true;
+                break;
+            }
+        }
+    }
+}
 
 std::vector<long> multiparty_psi(std::vector<std::vector<long>> sets,
                                  long threshold_l,
@@ -16,6 +33,48 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> sets,
     std::vector<long> server_set = sets.at(sets.size() - 1);
 
     return multiparty_psi(client_sets, server_set, threshold_l, m_bits, k_hashes, keys);
+}
+
+std::vector<ZZ> generate_eibf(std::vector<long> &client_set, long m_bits, long k_hashes, Keys &keys) {
+    BloomFilter bloom_filter(m_bits, k_hashes);
+
+    // Step 1
+    for (long element : client_set) {
+        bloom_filter.insert(element);
+    }
+
+    // Step 2
+    bloom_filter.invert();
+
+    // Step 3
+    std::vector<ZZ> eibf;
+    bloom_filter.encrypt_all(eibf, keys.public_key);
+
+    return eibf;
+}
+
+std::vector<ZZ> randomize_ciphertexts(std::vector<ZZ> ciphertexts, Keys &keys) {
+    std::vector<ZZ> randomized_ciphertexts;
+    randomized_ciphertexts.reserve(ciphertexts.size());
+
+    for (const ZZ& ciphertext : ciphertexts) {
+        ZZ random = Gen_Coprime(keys.public_key.n);
+        randomized_ciphertexts.push_back(multiply_homomorphically(ciphertext, random, keys.public_key));
+    }
+
+    return randomized_ciphertexts;
+}
+
+std::vector<std::pair<long, ZZ>> compute_decryption_shares(std::vector<ZZ> ciphertexts, long client_id, Keys &keys) {
+    std::vector<std::pair<long, ZZ>> decryption_shares;
+    decryption_shares.reserve(ciphertexts.size());
+
+    for (auto ciphertext : ciphertexts) {
+        decryption_shares.emplace_back(client_id + 1, partial_decrypt(ciphertext, keys.public_key,
+                                                              keys.private_keys.at(client_id)));
+    }
+
+    return decryption_shares;
 }
 
 // TODO: Clean up
@@ -34,24 +93,20 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
     /// Local EIBF generation
 
     // 1-3. Clients compute their Bloom filter, invert it and encrypt it (generating EIBFs)
+    std::vector<std::future<std::vector<ZZ>>> eibf_futures;
+    eibf_futures.reserve(client_sets.size());
+    for (auto & client_set : client_sets) {
+        eibf_futures.push_back(std::async(std::launch::async, generate_eibf, std::ref(client_set), m_bits, k_hashes, std::ref(keys)));
+    }
+
+    // Wait till the processing is done
+    await_futures(eibf_futures);
+
+    // Extract the generated EIBFs from the clients
     std::vector<std::vector<ZZ>> client_eibfs;
     client_eibfs.reserve(client_sets.size());
-    for (std::vector<long> client_set : client_sets) {
-        BloomFilter bloom_filter(m_bits, k_hashes);
-
-        // Step 1
-        for (long element : client_set) {
-            bloom_filter.insert(element);
-        }
-
-        // Step 2
-        bloom_filter.invert();
-
-        // Step 3
-        std::vector<ZZ> eibf;
-        bloom_filter.encrypt_all(eibf, keys.public_key);
-
-        client_eibfs.push_back(eibf);
+    for (std::future<std::vector<ZZ>> &future : eibf_futures) {
+        client_eibfs.push_back(future.get());
     }
 
     // 4. Send the encrypted Bloom filters to the server
@@ -91,36 +146,61 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
     // 3. The ciphertexts get sent to l parties
     // TODO: Send to clients (look into threshold)
 
-    // 4-5. Decrypt-to-zero each ciphertext and run the combining algorithm
+    // 4. Decrypt-to-zero each ciphertext in collaboration with the clients
+    std::vector<std::future<std::vector<ZZ>>> randomization_futures;
+    randomization_futures.reserve(client_sets.size());
+    for (int i = 0; i < client_sets.size(); ++i) {
+        randomization_futures.push_back(std::async(std::launch::async, randomize_ciphertexts, ciphertexts, std::ref(keys)));
+    }
+
+    // Wait till the processing is done
+    await_futures(randomization_futures);
+
+    // Extract the randomized ciphertexts from the clients
+    std::vector<std::vector<ZZ>> client_ciphertexts;
+    client_ciphertexts.reserve(client_sets.size());
+    for (std::future<std::vector<ZZ>> &future : randomization_futures) {
+        client_ciphertexts.push_back(future.get());
+    }
+
+    // Sum up all clients' randomized ciphertexts
+    std::vector<ZZ> randomized_ciphertexts = client_ciphertexts.at(0);
+    for (int i = 1; i < client_ciphertexts.size(); ++i) {
+        for (int j = 0; j < ciphertexts.size(); ++j) {
+            randomized_ciphertexts.at(j) = add_homomorphically(randomized_ciphertexts.at(j), client_ciphertexts.at(i).at(j), keys.public_key);
+        }
+    }
+
+    // Partial decryption (let threshold + 1 parties decrypt)
+    std::vector<std::future<std::vector<std::pair<long, ZZ>>>> decryption_share_futures;
+    decryption_share_futures.reserve(threshold_l + 1);
+    for (int i = 0; i < (threshold_l + 1); ++i) {
+        decryption_share_futures.push_back(std::async(std::launch::async, compute_decryption_shares, randomized_ciphertexts, i, std::ref(keys)));
+    }
+
+    // Wait till the processing is done
+    await_futures(decryption_share_futures);
+
+    // Extract the decryption shares from the clients
+    std::vector<std::vector<std::pair<long, ZZ>>> client_decryption_shares;
+    client_decryption_shares.reserve(threshold_l + 1);
+    for (std::future<std::vector<std::pair<long, ZZ>>> &future : decryption_share_futures) {
+        client_decryption_shares.push_back(future.get());
+    }
+
+    // 5. Run the combining algorithm
     std::vector<ZZ> decryptions;
     decryptions.reserve(ciphertexts.size());
-    for (ZZ ciphertext : ciphertexts) {
-        ZZ zero_ciphertext(1);
 
-        // Client 1 raises C to a nonzero random power and all the clients' results are multiplied
-        ZZ random = Gen_Coprime(keys.public_key.n);
-        zero_ciphertext = NTL::MulMod(zero_ciphertext,
-                                      NTL::PowerMod(ciphertext, random, keys.public_key.n * keys.public_key.n),
-                                      keys.public_key.n * keys.public_key.n);
-        // Client 2 raises C to a nonzero random power and all the clients' results are multiplied
-        random = Gen_Coprime(keys.public_key.n);
-        zero_ciphertext = NTL::MulMod(zero_ciphertext,
-                                      NTL::PowerMod(ciphertext, random, keys.public_key.n * keys.public_key.n),
-                                      keys.public_key.n * keys.public_key.n);
+    for (int i = 0; i < ciphertexts.size(); ++i) {
+        std::vector<std::pair<long, ZZ>> ciphertext_decryption_shares;
+        ciphertext_decryption_shares.reserve(client_decryption_shares.size());
 
-        // TODO: Maybe server as well to make sure it's resistant when clients do not randomize
-
-        // Partial decryption (let threshold + 1 parties decrypt)
-        std::vector<std::pair<long, ZZ>> decryption_shares;
-        decryption_shares.reserve(threshold_l + 1);
-        for (int i = 0; i < (threshold_l + 1); ++i) {
-            decryption_shares.emplace_back(i + 1, partial_decrypt(zero_ciphertext, keys.public_key,
-                                                                  keys.private_keys.at(i)));
+        for (auto & client_decryption_share : client_decryption_shares) {
+            ciphertext_decryption_shares.push_back(client_decryption_share.at(i));
         }
 
-        // Combining algorithm
-        decryptions.push_back(combine_partial_decrypt(decryption_shares,
-                                                      keys.public_key));
+        decryptions.push_back(combine_partial_decrypt(ciphertext_decryption_shares, keys.public_key));
     }
 
     // 6. Output the final intersection by selecting the elements from the server set that correspond to a decryption of zero
@@ -134,14 +214,28 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
     return intersection;
 }
 
+std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> sets,
+                                 long threshold_l,
+                                 long m_bits, long k_hashes,
+                                 long intersection_threshold_T,
+                                 Keys &keys) {
+    std::vector<std::vector<long>> client_sets;
+    client_sets.reserve(sets.size() - 1);
+    for (int i = 0; i < sets.size() - 1; ++i) {
+        client_sets.push_back(sets.at(i));
+    }
+
+    std::vector<long> server_set = sets.at(sets.size() - 1);
+
+    return threshold_multiparty_psi(client_sets, server_set, threshold_l, m_bits, k_hashes, intersection_threshold_T, keys);
+}
+
 std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client_sets,
                                           std::vector<long> server_set,
-                                          long threshold_l, long parties_t,
-                                          long key_length, long m_bits, long k_hashes,
-                                          long intersection_threshold_T) {
+                                          long threshold_l,
+                                          long m_bits, long k_hashes,
+                                          long intersection_threshold_T, Keys& keys) {
     //// MPSI protocol
-    Keys keys;
-    key_gen(&keys, key_length, threshold_l, parties_t);
     // -> Normally, the keys would be distributed to the parties now
     // TODO: Implement sending
 
