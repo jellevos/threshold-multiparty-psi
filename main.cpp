@@ -1,14 +1,13 @@
+//
+// Created by Jelle Vos on 02-04-21.
+//
 #include <iostream>
 #include <vector>
 #include "psi_protocols.h"
 #include "benchmarking.h"
-// #include "NTL/BasicThreadPool.h"
 
 
-// TODO: Allow variable set sizes?
 int main() {
-    // SetNumThreads(8);
-
     Keys keys;
     key_gen(&keys, 1024, 2, 3);
 
@@ -59,7 +58,7 @@ int main() {
 
     if (std::cin.get() == 'y') {
         std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
-        benchmark(std::vector<long>({10, 20, 30, 40, 50, 60, 70, 80, 90, 100}), std::vector<long>({4, 6, 7}));
+        benchmark(std::vector<long>({5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}), std::vector<long>({4, 6, 7}));
     }
 
     std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n');
@@ -68,7 +67,8 @@ int main() {
 
     if (std::cin.get() == 'y') {
         std::cout << "Running benchmarks (without simulated delays) using a 1024-bit key:" << std::endl;
-        threshold_benchmark(std::vector<long>({5, 15, 25, 35}), std::vector<long>({2, 4, 5}));
+        //threshold_benchmark(std::vector<long>({5, 10, 20, 30, 40, 50}), std::vector<long>({2, 4, 5}));
+        threshold_benchmark(std::vector<long>({50, 40, 30, 20, 10, 5}), std::vector<long>({2, 4, 5}));
     }
 
     return 0;
