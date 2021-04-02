@@ -1,5 +1,5 @@
 //
-// Created by jelle on 07-10-20.
+// Created by Jelle Vos on 07-10-20 using the code from https://github.com/ziyao002/Threshold-Paillier-with-ZKP.
 //
 
 #ifndef THRESHOLD_PAILLIER_H

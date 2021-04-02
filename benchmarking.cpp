@@ -1,5 +1,5 @@
 //
-// Created by jelle on 14-10-20.
+// Created by Jelle Vos on 14-10-20.
 //
 
 #include "benchmarking.h"
@@ -60,7 +60,6 @@ void benchmark(std::vector<long> parties_t, std::vector<long> set_size_exponents
                     std::vector<long> set;
                     set.reserve(1 << exp);
                     for (unsigned long k = 0; k < (1 << exp); ++k) {
-                        // TODO: User random long instead of int
                         set.push_back(rand());
                     }
                     client_sets.push_back(set);
@@ -142,7 +141,6 @@ void threshold_benchmark(std::vector<long> parties_t, std::vector<long> set_size
                     std::vector<long> set;
                     set.reserve(1 << exp);
                     for (unsigned long k = 0; k < (1 << exp); ++k) {
-                        // TODO: User random long instead of int
                         set.push_back(rand());
                     }
                     client_sets.push_back(set);

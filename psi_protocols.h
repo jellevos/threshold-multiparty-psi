@@ -1,5 +1,5 @@
 //
-// Created by jelle on 09-10-20.
+// Created by Jelle Vos on 09-10-20.
 //
 
 #ifndef PSI_PROTOCOLS_H

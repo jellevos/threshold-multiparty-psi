@@ -1,5 +1,5 @@
 //
-// Created by jelle on 09-10-20.
+// Created by Jelle Vos on 09-10-20.
 //
 #include <thread>
 #include <future>
@@ -77,8 +77,6 @@ std::vector<std::pair<long, ZZ>> compute_decryption_shares(std::vector<ZZ> ciphe
     return decryption_shares;
 }
 
-// TODO: Clean up
-// TODO: Fix all file headers
 std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
                                  std::vector<long> server_set,
                                  long threshold_l,
@@ -87,7 +85,6 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
     //// MPSI protocol
 
     /// Initialization
-    // TODO: Send?
 
 
     /// Local EIBF generation
@@ -110,7 +107,6 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
     }
 
     // 4. Send the encrypted Bloom filters to the server
-    // TODO: Implement sending
 
 
     /// Set Intersection Computation
@@ -144,7 +140,6 @@ std::vector<long> multiparty_psi(std::vector<std::vector<long>> client_sets,
     }
 
     // 3. The ciphertexts get sent to l parties
-    // TODO: Send to clients (look into threshold)
 
     // 4. Decrypt-to-zero each ciphertext in collaboration with the clients
     std::vector<std::future<std::vector<ZZ>>> randomization_futures;
@@ -237,11 +232,9 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
                                           long intersection_threshold_T, Keys& keys) {
     //// MPSI protocol
     // -> Normally, the keys would be distributed to the parties now
-    // TODO: Implement sending
 
 
     /// Initialization
-    // TODO: Send?
 
 
     /// Local EIBF generation
@@ -265,7 +258,6 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
     }
 
     // 3. Send the encrypted Bloom filters to the server
-    // TODO: Implement sending
 
 
     /// Set Intersection generation by the server
@@ -305,7 +297,6 @@ std::vector<long> threshold_multiparty_psi(std::vector<std::vector<long>> client
         }
     }
 
-    // TODO: Send to clients?
     // 4-6. For each ciphertext, compute a fresh encryption of k and run a Secure Comparison Protocol with it
     std::vector<std::vector<ZZ>> client_comparisons;
     client_comparisons.reserve(client_ciphertexts.size());

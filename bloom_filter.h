@@ -1,5 +1,5 @@
 //
-// Created by jelle on 09-10-20.
+// Created by Jelle Vos on 09-10-20.
 //
 
 #ifndef BLOOM_FILTER_H
@@ -25,7 +25,7 @@ public:
     static unsigned long hash(long input, long seed);
 
 private:
-    std::vector<bool> storage;  // TODO: Make private
+    std::vector<bool> storage;
     unsigned long m_bits;
     unsigned long k_hashes;
 };

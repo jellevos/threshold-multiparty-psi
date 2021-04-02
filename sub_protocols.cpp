@@ -1,5 +1,5 @@
 //
-// Created by jelle on 11-10-20.
+// Created by Jelle Vos on 11-10-20.
 //
 
 #include "sub_protocols.h"
@@ -27,11 +27,10 @@ ZZ multiparty_comparison(ZZ a, ZZ b, long threshold_l, ZZ random_bound, Keys &ke
     // 2. Send ciphertexts to other parties, with a_1 = Enc(0), a_2 = Enc(1), (a_3 = c_encrypted)
     ZZ a_1 = encrypt(ZZ(1), keys.public_key);
     ZZ a_2 = encrypt(ZZ(0), keys.public_key);
-    // TODO: Send
 
     // 3. Let each party take a turn in re-randomizing and possibly permuting the three ciphertexts
     for (int i = 0; i < threshold_l; ++i) {
-        bool b_i = rand() % 2;  // TODO: Check randomness
+        bool b_i = rand() % 2;
         if (b_i) {
             // Swap a_1 and a_2 with uniform probability
             std::swap(a_1, a_2);
@@ -47,7 +46,6 @@ ZZ multiparty_comparison(ZZ a, ZZ b, long threshold_l, ZZ random_bound, Keys &ke
         c_encrypted = add_homomorphically(c_encrypted,
                                           encrypt(ZZ((b_i * 2 - 1) * r_prime), keys.public_key),
                                           keys.public_key);
-        // TODO: Send to next
     }
 
     // 4. Decrypt collaboratively and return a_1 if the result is negative, a_2 otherwise

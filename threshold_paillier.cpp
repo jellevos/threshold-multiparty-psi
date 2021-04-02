@@ -1,15 +1,8 @@
 //
-// Created by jelle on 07-10-20.
-// TODO: Change
+// Created by Jelle Vos on 07-10-20 using the code from https://github.com/ziyao002/Threshold-Paillier-with-ZKP.
 //
 #include "threshold_paillier.h"
 
-
-// TODO: Consider changing ZZs to references
-// TODO: NTL:ZZ to ZZ
-// TODO: Generalize towards an arbitrary number of t and l
-// TODO: Fix comments (shorten?)
-// TODO: Consider rewriting ZZ to ZZ_p (p does not have to be prime)
 
 static void GenSafePrimePair(NTL::ZZ& p, NTL::ZZ& q, NTL::ZZ& pp, NTL::ZZ& qq, long keyLength){
     /* Coprime generation function. Generates a random coprime number of n.
@@ -118,7 +111,6 @@ ZZ encrypt(ZZ message, const PublicKey& public_key) {
         encoded_message = public_key.n + message;
     }
     NTL::ZZ random = Gen_Coprime(public_key.n);
-    // TODO: Use MulMod
     NTL::ZZ ciphertext = NTL::PowerMod(public_key.g, encoded_message, public_key.n_squared) *
             NTL::PowerMod(random, public_key.n, public_key.n_squared);
     return ciphertext % (public_key.n_squared);
@@ -152,7 +144,6 @@ ZZ combine_partial_decrypt(std::vector<std::pair<long, ZZ>> secret_shares, const
      * NTL::ZZ M: the decryption of the original message.
      */
     std::vector<ZZ> lambdas;
-    // TODO: Correct mistake here in the paper: it says threshold l out of total l, but we should have l+1 out of t
     for (int i = 0; i < (public_key.threshold_l + 1); ++i) {
         ZZ lambda = public_key.delta;
 
@@ -183,7 +174,6 @@ ZZ combine_partial_decrypt(std::vector<std::pair<long, ZZ>> secret_shares, const
     }
 
     return m;
-//    return ZZ(0);
 }
 
 ZZ add_homomorphically(ZZ c1, ZZ c2, PublicKey& public_key) {

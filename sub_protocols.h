@@ -1,5 +1,5 @@
 //
-// Created by jelle on 11-10-20.
+// Created by Jelle Vos on 11-10-20.
 //
 
 #ifndef SUB_PROTOCOLS_H
@@ -10,8 +10,6 @@
 
 using namespace NTL;
 
-
-// TODO: Check whether Gen_Coprime is really necessary
 
 /// Inputs ciphertexts a and b and returns a ciphertext representing the boolean a <= b (a less than or equal to b)
 ZZ multiparty_comparison(ZZ a, ZZ b, long threshold_l, ZZ random_bound, Keys &keys);

@@ -1,5 +1,5 @@
 //
-// Created by jelle on 09-10-20.
+// Created by Jelle Vos on 09-10-20.
 //
 
 #include "bloom_filter.h"
@@ -33,11 +33,9 @@ void BloomFilter::invert() {
 }
 
 /// Returns the bit-by-bit ciphertexts of the encrypted Bloom filter
-// TODO: Consider not passing ciphertexts by reference
 void BloomFilter::encrypt_all(std::vector<ZZ> &ciphertexts, PublicKey &public_key) {
     ciphertexts.reserve(this->storage.size());
     for (bool element : this->storage) {
-        // TODO: Maybe cast storage to long
         ciphertexts.push_back(encrypt(ZZ(element), public_key));
     }
 }

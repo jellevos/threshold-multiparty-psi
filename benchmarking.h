@@ -1,5 +1,5 @@
 //
-// Created by jelle on 14-10-20.
+// Created by Jelle Vos on 14-10-20.
 //
 
 #ifndef BENCHMARKING_H
